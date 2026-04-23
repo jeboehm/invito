@@ -24,6 +24,7 @@
       <div class="card-meta">
         {{.CalDAVURL}}
         {{if .LastSynced}} · Last synced: {{.LastSynced.Format "Jan 2, 15:04"}}{{else}} · Never synced{{end}}
+        · {{.EventCount}} event{{if ne .EventCount 1}}s{{end}} synced
       </div>
     </div>
     <div style="display:flex;gap:.5rem">

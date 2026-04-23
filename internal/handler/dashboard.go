@@ -97,13 +97,13 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 
 type calendarsData struct {
 	baseData
-	Calendars []db.Calendar
+	Calendars []db.CalendarSummary
 	Error     string
 }
 
 func (h *DashboardHandler) HandleCalendarsGet(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
-	cals, _ := db.ListCalendars(h.db, user.ID)
+	cals, _ := db.ListCalendarsWithEventCounts(h.db, user.ID)
 	render(w, "dashboard/calendars.html", calendarsData{base(r, user), cals, ""})
 }
 
@@ -121,7 +121,7 @@ func (h *DashboardHandler) HandleCalendarsPost(w http.ResponseWriter, r *http.Re
 	}
 
 	showError := func(msg string) {
-		cals, _ := db.ListCalendars(h.db, user.ID)
+		cals, _ := db.ListCalendarsWithEventCounts(h.db, user.ID)
 		render(w, "dashboard/calendars.html", calendarsData{base(r, user), cals, msg})
 	}
 

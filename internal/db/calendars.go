@@ -147,6 +147,41 @@ func ListCalendarEventsForUser(db *sql.DB, userID int64, from, to time.Time) ([]
 	return events, rows.Err()
 }
 
+type CalendarSummary struct {
+	Calendar
+	EventCount int
+}
+
+func ListCalendarsWithEventCounts(db *sql.DB, userID int64) ([]CalendarSummary, error) {
+	rows, err := db.Query(`
+		SELECT c.id, c.user_id, c.caldav_url, c.username, c.password, c.display_name, c.color,
+		       c.sync_enabled, c.last_synced, c.created_at,
+		       COUNT(ce.id) AS event_count
+		FROM calendars c
+		LEFT JOIN calendar_events ce ON ce.calendar_id = c.id
+		WHERE c.user_id = ?
+		GROUP BY c.id
+		ORDER BY c.created_at
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []CalendarSummary
+	for rows.Next() {
+		var s CalendarSummary
+		c := &s.Calendar
+		if err := rows.Scan(&c.ID, &c.UserID, &c.CalDAVURL, &c.Username, &c.Password,
+			&c.DisplayName, &c.Color, &c.SyncEnabled, &c.LastSynced, &c.CreatedAt,
+			&s.EventCount); err != nil {
+			return nil, err
+		}
+		result = append(result, s)
+	}
+	return result, rows.Err()
+}
+
 func PurgeOldCalendarEvents(db *sql.DB, calendarID int64, before time.Time) error {
 	_, err := db.Exec(`
 		DELETE FROM calendar_events WHERE calendar_id = ? AND end_at < ?
