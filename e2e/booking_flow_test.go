@@ -63,9 +63,10 @@ func TestCompleteBookingFlow(t *testing.T) {
 		chromedp.Navigate(serverURL+"/dashboard/availability"),
 		chromedp.WaitVisible(`input[name="day_0_start"]`, chromedp.ByQuery),
 		chromedp.Evaluate(enableAll, nil),
-		chromedp.Click(`button[type="submit"]`, chromedp.ByQuery),
-		chromedp.WaitVisible(`input[name="day_0_start"]`, chromedp.ByQuery),
 	); err != nil {
+		t.Fatalf("set availability: %v", err)
+	}
+	if err := waitForFormSubmit(ctx, `form[action="/dashboard/availability"] button[type="submit"]`); err != nil {
 		t.Fatalf("set availability: %v", err)
 	}
 

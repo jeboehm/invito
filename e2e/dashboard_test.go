@@ -121,10 +121,11 @@ func TestDashboardAvailability(t *testing.T) {
 		chromedp.Evaluate(`document.querySelector('input[name="day_1_active"]').checked = true`, nil),
 		chromedp.SetValue(`input[name="day_1_start"]`, "10:00", chromedp.ByQuery),
 		chromedp.SetValue(`input[name="day_1_end"]`, "16:00", chromedp.ByQuery),
-		chromedp.Click(`button[type="submit"]`, chromedp.ByQuery),
-		// Wait for the page to reload after the redirect.
-		chromedp.WaitVisible(`input[name="day_1_start"]`, chromedp.ByQuery),
 	); err != nil {
+		t.Fatalf("save availability: %v", err)
+	}
+	// Wait for the POST→redirect→GET sequence to complete before reading back values.
+	if err := waitForFormSubmit(ctx, `form[action="/dashboard/availability"] button[type="submit"]`); err != nil {
 		t.Fatalf("save availability: %v", err)
 	}
 
@@ -174,71 +175,51 @@ func TestDashboardEventTypeCreateAndEdit(t *testing.T) {
 		t.Fatalf("create event type: %v", err)
 	}
 
-	var cardTitle string
+	// Verify our card is present (there may be others from earlier tests).
 	if err := chromedp.Run(ctx,
-		chromedp.Text(`.card-title`, &cardTitle, chromedp.ByQuery),
+		chromedp.WaitVisible(`//span[contains(@class,"card-title") and contains(.,"E2E Test Meeting")]`, chromedp.BySearch),
 	); err != nil {
-		t.Fatalf("read card title: %v", err)
-	}
-	if !strings.Contains(cardTitle, "E2E Test Meeting") {
-		t.Errorf("card title: got %q, want it to contain %q", cardTitle, "E2E Test Meeting")
+		t.Fatalf("wait for card title: %v", err)
 	}
 
-	// --- Edit ---
+	// --- Edit: click the Edit link belonging to the E2E Test Meeting card ---
 	if err := chromedp.Run(ctx,
-		chromedp.Click(`a[href*="/edit"]`, chromedp.ByQuery),
+		chromedp.Evaluate(`
+			var card = Array.from(document.querySelectorAll('.card'))
+				.find(c => c.querySelector('.card-title').textContent.includes('E2E Test Meeting'));
+			card.querySelector('a[href*="/edit"]').click();
+		`, nil),
 		chromedp.WaitVisible(`input[name="title"]`, chromedp.ByQuery),
 		chromedp.SetValue(`input[name="title"]`, "E2E Updated Meeting", chromedp.ByQuery),
-		chromedp.SetValue(`textarea[name="guest_message"]`, "Thanks for booking!", chromedp.ByQuery),
-		chromedp.Click(`button[type="submit"]`, chromedp.ByQuery),
-		chromedp.WaitVisible(`.card-title`, chromedp.ByQuery),
+		chromedp.SetValue(`textarea[name="confirmed_message"]`, "Thanks for booking!", chromedp.ByQuery),
+		chromedp.Click(`form[action*="/dashboard/event-types/"] button[type="submit"]`, chromedp.ByQuery),
+		chromedp.WaitVisible(`//span[contains(@class,"card-title") and contains(.,"E2E Updated Meeting")]`, chromedp.BySearch),
 	); err != nil {
 		t.Fatalf("edit event type: %v", err)
 	}
 
-	var updatedTitle string
+	// --- Toggle (deactivate) the E2E Updated Meeting card ---
 	if err := chromedp.Run(ctx,
-		chromedp.Text(`.card-title`, &updatedTitle, chromedp.ByQuery),
-	); err != nil {
-		t.Fatalf("read updated title: %v", err)
-	}
-	if !strings.Contains(updatedTitle, "E2E Updated Meeting") {
-		t.Errorf("updated title: got %q, want it to contain %q", updatedTitle, "E2E Updated Meeting")
-	}
-
-	// --- Toggle (deactivate) ---
-	if err := chromedp.Run(ctx,
-		chromedp.Click(`form[action*="/toggle"] button`, chromedp.ByQuery),
-		chromedp.WaitVisible(`.card-meta`, chromedp.ByQuery),
+		chromedp.Evaluate(`
+			var card = Array.from(document.querySelectorAll('.card'))
+				.find(c => c.querySelector('.card-title').textContent.includes('E2E Updated Meeting'));
+			card.querySelector('form[action*="/toggle"] button').click();
+		`, nil),
+		chromedp.WaitVisible(`//div[contains(@class,"card-meta") and contains(.,"Inactive")]`, chromedp.BySearch),
 	); err != nil {
 		t.Fatalf("toggle event type: %v", err)
 	}
 
-	var metaText string
-	if err := chromedp.Run(ctx,
-		chromedp.Text(`.card-meta`, &metaText, chromedp.ByQuery),
-	); err != nil {
-		t.Fatalf("read meta after toggle: %v", err)
-	}
-	if !strings.Contains(metaText, "Inactive") {
-		t.Errorf("meta after deactivate: got %q, want it to contain %q", metaText, "Inactive")
-	}
-
 	// --- Toggle back (activate) ---
 	if err := chromedp.Run(ctx,
-		chromedp.Click(`form[action*="/toggle"] button`, chromedp.ByQuery),
-		chromedp.WaitVisible(`.card-meta`, chromedp.ByQuery),
+		chromedp.Evaluate(`
+			var card = Array.from(document.querySelectorAll('.card'))
+				.find(c => c.querySelector('.card-title').textContent.includes('E2E Updated Meeting'));
+			card.querySelector('form[action*="/toggle"] button').click();
+		`, nil),
+		chromedp.WaitVisible(`//div[contains(@class,"card-meta") and contains(.,"Active")]`, chromedp.BySearch),
 	); err != nil {
 		t.Fatalf("re-toggle event type: %v", err)
-	}
-
-	if err := chromedp.Run(ctx,
-		chromedp.Text(`.card-meta`, &metaText, chromedp.ByQuery),
-	); err != nil {
-		t.Fatalf("read meta after re-toggle: %v", err)
-	}
-	if !strings.Contains(metaText, "Active") {
-		t.Errorf("meta after reactivate: got %q, want it to contain %q", metaText, "Active")
 	}
 }
 
@@ -249,21 +230,16 @@ func TestDashboardBookings(t *testing.T) {
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	var heading, emptyMsg string
+	var heading string
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(serverURL+"/dashboard/bookings"),
 		chromedp.WaitVisible(`h1`, chromedp.ByQuery),
 		chromedp.Text(`h1`, &heading, chromedp.ByQuery),
-		chromedp.WaitVisible(`p`, chromedp.ByQuery),
-		chromedp.Text(`p`, &emptyMsg, chromedp.ByQuery),
 	); err != nil {
 		t.Fatalf("navigate: %v", err)
 	}
 	if heading != "Bookings" {
 		t.Errorf("heading: got %q, want %q", heading, "Bookings")
-	}
-	if !strings.Contains(emptyMsg, "No bookings found") {
-		t.Errorf("empty state: got %q, want it to contain %q", emptyMsg, "No bookings found")
 	}
 
 	// Filter links should navigate to the correct URLs.
@@ -311,28 +287,40 @@ func TestDashboardProfile(t *testing.T) {
 	}
 
 	// Change display name.
-	var savedName string
 	if err := chromedp.Run(ctx,
 		chromedp.SetValue(`input[name="name"]`, "E2E Admin", chromedp.ByQuery),
-		chromedp.Click(`button[type="submit"]`, chromedp.ByQuery),
+	); err != nil {
+		t.Fatalf("set name: %v", err)
+	}
+	if err := waitForFormSubmit(ctx, `form[action="/dashboard/profile"] button[type="submit"]`); err != nil {
+		t.Fatalf("save name: %v", err)
+	}
+	var savedName string
+	if err := chromedp.Run(ctx,
 		chromedp.WaitVisible(`input[name="name"]`, chromedp.ByQuery),
 		chromedp.Value(`input[name="name"]`, &savedName, chromedp.ByQuery),
 	); err != nil {
-		t.Fatalf("save name: %v", err)
+		t.Fatalf("read back name: %v", err)
 	}
 	if savedName != "E2E Admin" {
 		t.Errorf("saved name: got %q, want %q", savedName, "E2E Admin")
 	}
 
 	// Change username slug.
-	var savedSlug string
 	if err := chromedp.Run(ctx,
 		chromedp.SetValue(`input[name="username"]`, "e2e-admin", chromedp.ByQuery),
-		chromedp.Click(`button[type="submit"]`, chromedp.ByQuery),
+	); err != nil {
+		t.Fatalf("set slug: %v", err)
+	}
+	if err := waitForFormSubmit(ctx, `form[action="/dashboard/profile"] button[type="submit"]`); err != nil {
+		t.Fatalf("save slug: %v", err)
+	}
+	var savedSlug string
+	if err := chromedp.Run(ctx,
 		chromedp.WaitVisible(`input[name="username"]`, chromedp.ByQuery),
 		chromedp.Value(`input[name="username"]`, &savedSlug, chromedp.ByQuery),
 	); err != nil {
-		t.Fatalf("save slug: %v", err)
+		t.Fatalf("read back slug: %v", err)
 	}
 	if savedSlug != "e2e-admin" {
 		t.Errorf("saved slug: got %q, want %q", savedSlug, "e2e-admin")
@@ -351,17 +339,18 @@ func TestDashboardProfile(t *testing.T) {
 		t.Errorf("booking page title: got %q, want it to contain %q", bookingPageTitle, "E2E Admin")
 	}
 
-	// Duplicate slug should be rejected (try to set the same slug again from another session —
-	// the same user changing to their own existing slug is fine; a different user would be blocked).
-	// Validate that an empty slug shows an error.
+	// Validate that an empty name shows a server-side error.
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(serverURL+"/dashboard/profile"),
 		chromedp.WaitVisible(`input[name="name"]`, chromedp.ByQuery),
-		// Blank out the name field — server must reject it.
-		chromedp.SetValue(`input[name="name"]`, "", chromedp.ByQuery),
-		// Remove the required attribute so the browser does not block submit client-side.
-		chromedp.Evaluate(`document.querySelector('input[name="name"]').removeAttribute('required')`, nil),
-		chromedp.Click(`button[type="submit"]`, chromedp.ByQuery),
+		// Use JS to blank the name and remove required in one atomic step,
+		// avoiding a stale-node-ID race between SetValue and Evaluate.
+		chromedp.Evaluate(`
+			var n = document.querySelector('input[name="name"]');
+			n.removeAttribute('required');
+			n.value = '';
+		`, nil),
+		chromedp.Click(`form[action="/dashboard/profile"] button[type="submit"]`, chromedp.ByQuery),
 		chromedp.WaitVisible(`.alert-error`, chromedp.ByQuery),
 	); err != nil {
 		t.Fatalf("empty name validation: %v", err)

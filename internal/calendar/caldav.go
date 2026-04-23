@@ -286,12 +286,32 @@ func buildICAL(booking *db.Booking, eventType *db.EventType, guestName string) s
 	fmt.Fprintf(&b, "DTSTART:%s\r\n", booking.StartAt.UTC().Format("20060102T150405Z"))
 	fmt.Fprintf(&b, "DTEND:%s\r\n", booking.EndAt.UTC().Format("20060102T150405Z"))
 	fmt.Fprintf(&b, "SUMMARY:%s with %s\r\n", eventType.Title, guestName)
-	if booking.GuestNote != "" {
-		fmt.Fprintf(&b, "DESCRIPTION:%s\r\n", strings.ReplaceAll(booking.GuestNote, "\n", "\\n"))
-	}
+	fmt.Fprintf(&b, "DESCRIPTION:%s\r\n", buildDescription(booking, eventType))
 	b.WriteString("END:VEVENT\r\n")
 	b.WriteString("END:VCALENDAR\r\n")
 	return b.String()
+}
+
+func buildDescription(booking *db.Booking, eventType *db.EventType) string {
+	parts := []string{
+		"Guest: " + icalEscape(booking.GuestName),
+		"Email: " + icalEscape(booking.GuestEmail),
+	}
+	if booking.GuestNote != "" {
+		parts = append(parts, icalEscape(booking.GuestNote))
+	}
+	if eventType.ConfirmedMessage != "" {
+		parts = append(parts, icalEscape(eventType.ConfirmedMessage))
+	}
+	return strings.Join(parts, "\\n")
+}
+
+func icalEscape(s string) string {
+	s = strings.ReplaceAll(s, "\\", "\\\\")
+	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.ReplaceAll(s, ";", "\\;")
+	s = strings.ReplaceAll(s, ",", "\\,")
+	return s
 }
 
 func decryptPassword(key [32]byte, encPass string) (string, error) {

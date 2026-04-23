@@ -1,6 +1,7 @@
 package calendar
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -175,5 +176,70 @@ func TestUpsertVEVENT_ExplicitUTCSuffix(t *testing.T) {
 	wantUTC := time.Date(2026, 4, 28, 9, 0, 0, 0, time.UTC)
 	if !gotUTC.Equal(wantUTC) {
 		t.Errorf("startAt UTC: got %v, want %v", gotUTC, wantUTC)
+	}
+}
+
+func TestBuildICAL_Description(t *testing.T) {
+	booking := &db.Booking{
+		Token:      "tok123",
+		GuestName:  "Alice Smith",
+		GuestEmail: "alice@example.com",
+		GuestNote:  "Please bring coffee.",
+		StartAt:    time.Date(2026, 5, 1, 10, 0, 0, 0, time.UTC),
+		EndAt:      time.Date(2026, 5, 1, 11, 0, 0, 0, time.UTC),
+	}
+	et := &db.EventType{
+		Title:            "Intro Call",
+		DurationMinutes:  60,
+		ConfirmedMessage: "Looking forward to it!",
+	}
+
+	ics := buildICAL(booking, et, booking.GuestName)
+
+	for _, want := range []string{
+		"DESCRIPTION:",
+		"Guest: Alice Smith",
+		"Email: alice@example.com",
+		"Please bring coffee.",
+		"Looking forward to it!",
+	} {
+		if !strings.Contains(ics, want) {
+			t.Errorf("iCal output missing %q\ngot:\n%s", want, ics)
+		}
+	}
+}
+
+func TestBuildICAL_DescriptionWithoutOptionalFields(t *testing.T) {
+	booking := &db.Booking{
+		Token:      "tok456",
+		GuestName:  "Bob",
+		GuestEmail: "bob@example.com",
+		StartAt:    time.Date(2026, 6, 1, 9, 0, 0, 0, time.UTC),
+		EndAt:      time.Date(2026, 6, 1, 10, 0, 0, 0, time.UTC),
+	}
+	et := &db.EventType{Title: "Chat", DurationMinutes: 60}
+
+	ics := buildICAL(booking, et, booking.GuestName)
+
+	if !strings.Contains(ics, "Guest: Bob") {
+		t.Errorf("DESCRIPTION missing guest name\ngot:\n%s", ics)
+	}
+	if !strings.Contains(ics, "Email: bob@example.com") {
+		t.Errorf("DESCRIPTION missing guest email\ngot:\n%s", ics)
+	}
+}
+
+func TestICALEscape(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"hello", "hello"},
+		{"a,b", "a\\,b"},
+		{"a;b", "a\\;b"},
+		{"a\\b", "a\\\\b"},
+		{"line1\nline2", "line1\\nline2"},
+	}
+	for _, c := range cases {
+		if got := icalEscape(c.in); got != c.want {
+			t.Errorf("icalEscape(%q) = %q, want %q", c.in, got, c.want)
+		}
 	}
 }

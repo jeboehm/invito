@@ -45,9 +45,13 @@ func TestSlotPickerActiveDateIndicator(t *testing.T) {
 		chromedp.SetValue(`input[name="title"]`, "Slot Picker Test", chromedp.ByQuery),
 		chromedp.SetValue(`input[name="slug"]`, etSlug, chromedp.ByQuery),
 		chromedp.SetValue(`input[name="duration_minutes"]`, "30", chromedp.ByQuery),
-		chromedp.Click(`form[action="/dashboard/event-types"] button[type="submit"]`, chromedp.ByQuery),
-		chromedp.WaitVisible(`.card-title`, chromedp.ByQuery),
 	); err != nil {
+		t.Fatalf("create event type: %v", err)
+	}
+	// Use waitForFormSubmit so the POST+redirect completes before proceeding.
+	// WaitVisible('.card-title') is unreliable when other tests have already
+	// created event types (the element is present before the POST fires).
+	if err := waitForFormSubmit(ctx, `form[action="/dashboard/event-types"] button[type="submit"]`); err != nil {
 		t.Fatalf("create event type: %v", err)
 	}
 
@@ -58,9 +62,10 @@ func TestSlotPickerActiveDateIndicator(t *testing.T) {
 		chromedp.Evaluate(`document.querySelector('input[name="day_1_active"]').checked = true`, nil),
 		chromedp.SetValue(`input[name="day_1_start"]`, "09:00", chromedp.ByQuery),
 		chromedp.SetValue(`input[name="day_1_end"]`, "17:00", chromedp.ByQuery),
-		chromedp.Click(`button[type="submit"]`, chromedp.ByQuery),
-		chromedp.WaitVisible(`input[name="day_1_start"]`, chromedp.ByQuery),
 	); err != nil {
+		t.Fatalf("set availability: %v", err)
+	}
+	if err := waitForFormSubmit(ctx, `form[action="/dashboard/availability"] button[type="submit"]`); err != nil {
 		t.Fatalf("set availability: %v", err)
 	}
 
