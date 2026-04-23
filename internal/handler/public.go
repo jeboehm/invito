@@ -184,7 +184,7 @@ func (h *PublicHandler) HandleBookingSubmit(w http.ResponseWriter, r *http.Reque
 	}
 
 	render(w, "booking/confirm.html", confirmData{
-		base(r, nil),
+		baseNoNav(r),
 		"📅",
 		"Booking request sent!",
 		"Your request has been submitted. " + user.Name + " will confirm or reject it within 24 hours. You'll receive an email either way.",
@@ -209,7 +209,7 @@ func (h *PublicHandler) HandleBookingConfirm(w http.ResponseWriter, r *http.Requ
 		msg = "This booking has already been processed."
 	}
 
-	render(w, "booking/confirm.html", confirmData{base(r, nil), "✓", "Booking confirmed!", msg})
+	render(w, "booking/confirm.html", confirmData{baseNoNav(r), "✓", "Booking confirmed!", msg})
 }
 
 func (h *PublicHandler) HandleBookingReject(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +225,7 @@ func (h *PublicHandler) HandleBookingReject(w http.ResponseWriter, r *http.Reque
 	}
 
 	render(w, "booking/confirm.html", confirmData{
-		base(r, nil), "✗", "Booking rejected",
+		baseNoNav(r), "✗", "Booking rejected",
 		"The booking request has been rejected. The guest has been notified.",
 	})
 }

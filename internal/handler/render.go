@@ -48,10 +48,15 @@ func init() {
 type baseData struct {
 	User      *db.User
 	CSRFToken string
+	HideNav   bool
 }
 
 func base(r *http.Request, user *db.User) baseData {
 	return baseData{User: user, CSRFToken: middleware.CSRFToken(r)}
+}
+
+func baseNoNav(r *http.Request) baseData {
+	return baseData{CSRFToken: middleware.CSRFToken(r), HideNav: true}
 }
 
 func render(w http.ResponseWriter, name string, data any) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -83,9 +84,25 @@ func WriteEvent(ctx context.Context, cal *db.Calendar, key [32]byte, booking *db
 		return fmt.Errorf("decrypt password: %w", err)
 	}
 
-	icalStr := buildICAL(booking, eventType, guestName)
-	putURL := strings.TrimRight(cal.CalDAVURL, "/") + "/" + booking.Token + ".ics"
+	// cal.CalDAVURL may be a principal URL, which rejects PUT with 403; discover the actual collection first.
+	client, err := newClient(cal.CalDAVURL, cal.Username, password)
+	if err != nil {
+		return err
+	}
 
+	collectionPath, err := discoverFirstCalendarPath(ctx, client)
+	if err != nil {
+		log.Printf("caldav write-back: discovery failed (%v), falling back to configured URL", err)
+		collectionPath = cal.CalDAVURL
+	}
+
+	// collectionPath may be server-root-relative; resolve against the configured host.
+	putURL, err := resolveCalendarObjectURL(cal.CalDAVURL, collectionPath, booking.Token+".ics")
+	if err != nil {
+		return err
+	}
+
+	icalStr := buildICAL(booking, eventType, guestName)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, putURL, strings.NewReader(icalStr))
 	if err != nil {
 		return err
@@ -103,6 +120,34 @@ func WriteEvent(ctx context.Context, cal *db.Calendar, key [32]byte, booking *db
 		return fmt.Errorf("CalDAV PUT returned %d", resp.StatusCode)
 	}
 	return nil
+}
+
+func discoverFirstCalendarPath(ctx context.Context, client *caldav.Client) (string, error) {
+	homeSet, err := client.FindCalendarHomeSet(ctx, "")
+	if err != nil {
+		return "", fmt.Errorf("FindCalendarHomeSet: %w", err)
+	}
+	calendars, err := client.FindCalendars(ctx, homeSet)
+	if err != nil || len(calendars) == 0 {
+		return "", fmt.Errorf("no calendars found (FindCalendars: %v)", err)
+	}
+	return calendars[0].Path, nil
+}
+
+// resolveCalendarObjectURL resolves calendarPath (which may be server-root-relative)
+// against the scheme+host of baseURL, then appends filename.
+func resolveCalendarObjectURL(baseURL, calendarPath, filename string) (string, error) {
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return "", fmt.Errorf("parse base URL: %w", err)
+	}
+	ref, err := url.Parse(calendarPath)
+	if err != nil {
+		return "", fmt.Errorf("parse calendar path: %w", err)
+	}
+	resolved := base.ResolveReference(ref)
+	resolved.Path = strings.TrimRight(resolved.Path, "/") + "/" + filename
+	return resolved.String(), nil
 }
 
 func newClient(rawURL, username, password string) (*caldav.Client, error) {

@@ -10,6 +10,7 @@
 <body>
 <header class="site-header">
   <a href="/" class="logo">Invito</a>
+  {{if not .HideNav}}
   <nav>
     {{if .User}}
       <a href="/dashboard">Dashboard</a>
@@ -21,6 +22,7 @@
       <a href="/auth/login" class="btn">Sign in</a>
     {{end}}
   </nav>
+  {{end}}
 </header>
 <main>
 {{block "content" .}}{{end}}
