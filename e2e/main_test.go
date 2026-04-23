@@ -115,6 +115,9 @@ func testMain(m *testing.M) int {
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.ExecPath(chromePath),
 	)
+	if os.Getenv("CHROME_HEADLESS") == "0" {
+		opts = append(opts, chromedp.Flag("headless", false))
+	}
 	var allocCancel context.CancelFunc
 	allocCtx, allocCancel = chromedp.NewExecAllocator(context.Background(), opts...)
 	defer allocCancel()
