@@ -51,7 +51,9 @@ func (h *PublicHandler) HandleUserBookingPage(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	render(w, "booking/list.html", bookingListData{base(r, user), active})
+	bd := base(r, user)
+	bd.HideNav = true
+	render(w, "booking/list.html", bookingListData{bd, active})
 }
 
 type pickerData struct {
@@ -106,8 +108,10 @@ func (h *PublicHandler) HandleSlotPicker(w http.ResponseWriter, r *http.Request)
 		dates[i] = today.Add(time.Duration(i) * 24 * time.Hour)
 	}
 
+	bd := base(r, user)
+	bd.HideNav = true
 	data := pickerData{
-		baseData:     base(r, user),
+		baseData:     bd,
 		EventType:    et,
 		Dates:        dates,
 		SelectedDate: selectedDate,
