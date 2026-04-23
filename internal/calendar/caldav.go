@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -43,23 +44,30 @@ func SyncCalendar(ctx context.Context, cal *db.Calendar, key [32]byte, database 
 		return err
 	}
 
-	// Try to find calendar home set, then enumerate calendars
 	homeSet, err := client.FindCalendarHomeSet(ctx, "")
 	if err != nil {
-		// Fallback: treat the URL itself as the calendar path
+		log.Printf("sync calendar %d: FindCalendarHomeSet: %v — using base URL as home set", cal.ID, err)
 		homeSet = ""
+	} else {
+		log.Printf("sync calendar %d: home set = %q", cal.ID, homeSet)
 	}
 
 	calendars, err := client.FindCalendars(ctx, homeSet)
 	if err != nil {
-		// If FindCalendars fails, try treating the URL itself as one calendar
+		log.Printf("sync calendar %d: FindCalendars(%q): %v — falling back to direct URL sync", cal.ID, homeSet, err)
+	} else {
+		log.Printf("sync calendar %d: found %d calendar(s)", cal.ID, len(calendars))
+	}
+
+	if err != nil || len(calendars) == 0 {
 		if err2 := syncPath(ctx, client, database, cal.ID, "", from, to); err2 != nil {
-			return fmt.Errorf("sync failed: %w", err)
+			return fmt.Errorf("sync failed (direct URL): %w", err2)
 		}
 		return nil
 	}
 
 	for _, c := range calendars {
+		log.Printf("sync calendar %d: syncing path %q", cal.ID, c.Path)
 		if err := syncPath(ctx, client, database, cal.ID, c.Path, from, to); err != nil {
 			return fmt.Errorf("sync %s: %w", c.Path, err)
 		}
@@ -107,7 +115,7 @@ func syncPath(ctx context.Context, client *caldav.Client, database *sql.DB, cale
 		CompRequest: caldav.CalendarCompRequest{
 			Name: "VCALENDAR",
 			Comps: []caldav.CalendarCompRequest{{
-				Name:    "VEVENT",
+				Name:     "VEVENT",
 				AllProps: true,
 			}},
 		},
@@ -123,12 +131,12 @@ func syncPath(ctx context.Context, client *caldav.Client, database *sql.DB, cale
 
 	objects, err := client.QueryCalendar(ctx, path, query)
 	if err != nil {
-		// Fallback: fetch all without time filter
+		log.Printf("sync calendar %d path %q: time-filtered query failed (%v), retrying without filter", calendarID, path, err)
 		queryAll := &caldav.CalendarQuery{
 			CompRequest: caldav.CalendarCompRequest{
 				Name: "VCALENDAR",
 				Comps: []caldav.CalendarCompRequest{{
-					Name:    "VEVENT",
+					Name:     "VEVENT",
 					AllProps: true,
 				}},
 			},
@@ -136,10 +144,13 @@ func syncPath(ctx context.Context, client *caldav.Client, database *sql.DB, cale
 		}
 		objects, err = client.QueryCalendar(ctx, path, queryAll)
 		if err != nil {
-			return err
+			return fmt.Errorf("query calendar: %w", err)
 		}
 	}
 
+	log.Printf("sync calendar %d path %q: received %d object(s)", calendarID, path, len(objects))
+
+	inserted := 0
 	for _, obj := range objects {
 		if obj.Data == nil {
 			continue
@@ -148,26 +159,31 @@ func syncPath(ctx context.Context, client *caldav.Client, database *sql.DB, cale
 			if comp.Name != ical.CompEvent {
 				continue
 			}
-			if err := upsertVEVENT(database, calendarID, comp); err != nil {
+			if err := upsertVEVENT(database, calendarID, comp, time.Local); err != nil {
 				return err
 			}
+			inserted++
 		}
 	}
+
+	log.Printf("sync calendar %d path %q: upserted %d event(s)", calendarID, path, inserted)
 	return nil
 }
 
-func upsertVEVENT(database *sql.DB, calendarID int64, comp *ical.Component) error {
+func upsertVEVENT(database *sql.DB, calendarID int64, comp *ical.Component, loc *time.Location) error {
 	uid, err := comp.Props.Text(ical.PropUID)
 	if err != nil || uid == "" {
+		log.Printf("sync: skipping event without UID (err: %v)", err)
 		return nil
 	}
 
-	startAt, err := comp.Props.DateTime(ical.PropDateTimeStart, time.UTC)
+	startAt, err := parseDateTimeWithFallback(comp.Props, ical.PropDateTimeStart, loc)
 	if err != nil || startAt.IsZero() {
+		log.Printf("sync: skipping event UID=%q: DTSTART parse error: %v", uid, err)
 		return nil
 	}
 
-	endAt, err := comp.Props.DateTime(ical.PropDateTimeEnd, time.UTC)
+	endAt, err := parseDateTimeWithFallback(comp.Props, ical.PropDateTimeEnd, loc)
 	if err != nil || endAt.IsZero() {
 		endAt = startAt.Add(time.Hour)
 	}
@@ -181,6 +197,38 @@ func upsertVEVENT(database *sql.DB, calendarID int64, comp *ical.Component) erro
 		EndAt:      endAt,
 		Summary:    summary,
 	})
+}
+
+// parseDateTimeWithFallback calls Prop.DateTime with loc. If it fails because
+// the TZID parameter refers to an unrecognised timezone (common with Windows /
+// Outlook calendar data, e.g. "W. Europe Standard Time"), it retries by
+// ignoring the TZID and treating the value as a local time in loc.
+func parseDateTimeWithFallback(props ical.Props, name string, loc *time.Location) (time.Time, error) {
+	prop := props.Get(name)
+	if prop == nil {
+		return time.Time{}, fmt.Errorf("property %s not found", name)
+	}
+
+	t, err := prop.DateTime(loc)
+	if err == nil {
+		return t, nil
+	}
+
+	// If a TZID is set but unrecognised, retry without it by parsing the raw value.
+	if tzid := prop.Params.Get(ical.PropTimezoneID); tzid != "" {
+		log.Printf("sync: TZID %q unrecognised for property %s, falling back to local time", tzid, name)
+		v := prop.Value
+		switch len(v) {
+		case 8: // DATE: 20060102
+			return time.ParseInLocation("20060102", v, loc)
+		case 15: // DATE-TIME local: 20060102T150405
+			return time.ParseInLocation("20060102T150405", v, loc)
+		case 16: // DATE-TIME UTC: 20060102T150405Z
+			return time.ParseInLocation("20060102T150405Z", v, time.UTC)
+		}
+	}
+
+	return time.Time{}, err
 }
 
 func buildICAL(booking *db.Booking, eventType *db.EventType, guestName string) string {
