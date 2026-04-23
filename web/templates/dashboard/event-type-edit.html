@@ -32,9 +32,14 @@
     <p class="form-hint">Shown on the booking page.</p>
   </div>
   <div class="form-group">
-    <label>Message to guests</label>
-    <textarea name="guest_message">{{.EventType.GuestMessage}}</textarea>
-    <p class="form-hint">Included in confirmation and rejection emails sent to guests.</p>
+    <label>Message on confirmation</label>
+    <textarea name="confirmed_message">{{.EventType.ConfirmedMessage}}</textarea>
+    <p class="form-hint">Included in the confirmation email sent to the guest.</p>
+  </div>
+  <div class="form-group">
+    <label>Message on rejection</label>
+    <textarea name="rejected_message">{{.EventType.RejectedMessage}}</textarea>
+    <p class="form-hint">Included in the rejection email sent to the guest.</p>
   </div>
   <div class="form-group">
     <label>Duration (minutes)</label>

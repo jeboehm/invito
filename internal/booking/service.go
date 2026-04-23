@@ -89,7 +89,7 @@ func (s *Service) ConfirmBooking(ctx context.Context, token string) (*db.Booking
 		GuestEmail:   b.GuestEmail,
 		HostName:     user.Name,
 		EventTitle:   et.Title,
-		GuestMessage: et.GuestMessage,
+		GuestMessage: et.ConfirmedMessage,
 		StartAt:      b.StartAt,
 	}
 
@@ -125,7 +125,7 @@ func (s *Service) RejectBooking(ctx context.Context, token string) (*db.Booking,
 	data := email.BookingEmailData{
 		GuestName:    b.GuestName,
 		EventTitle:   et.Title,
-		GuestMessage: et.GuestMessage,
+		GuestMessage: et.RejectedMessage,
 		StartAt:      b.StartAt,
 	}
 	if text, html, err := email.RenderBookingRejected(data); err == nil {
@@ -170,10 +170,10 @@ func (s *Service) StartGCLoop(ctx context.Context) {
 func (s *Service) fetchEventTypeAndUser(eventTypeID int64) (*db.EventType, *db.User, error) {
 	var et db.EventType
 	err := s.db.QueryRow(`
-		SELECT id, user_id, slug, title, description, guest_message, duration_minutes, color,
+		SELECT id, user_id, slug, title, description, confirmed_message, rejected_message, duration_minutes, color,
 		       booking_window_days, active, created_at
 		FROM event_types WHERE id = ?
-	`, eventTypeID).Scan(&et.ID, &et.UserID, &et.Slug, &et.Title, &et.Description, &et.GuestMessage,
+	`, eventTypeID).Scan(&et.ID, &et.UserID, &et.Slug, &et.Title, &et.Description, &et.ConfirmedMessage, &et.RejectedMessage,
 		&et.DurationMinutes, &et.Color, &et.BookingWindowDays, &et.Active, &et.CreatedAt)
 	if err != nil {
 		return nil, nil, err
