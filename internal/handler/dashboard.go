@@ -1,0 +1,362 @@
+package handler
+
+import (
+	"database/sql"
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/jboehm/invito/internal/auth"
+	"github.com/jboehm/invito/internal/calendar"
+	"github.com/jboehm/invito/internal/config"
+	"github.com/jboehm/invito/internal/crypto"
+	"github.com/jboehm/invito/internal/db"
+)
+
+const syncWindowDays = 60
+
+type DashboardHandler struct {
+	cfg *config.Config
+	db  *sql.DB
+}
+
+func NewDashboardHandler(cfg *config.Config, database *sql.DB) *DashboardHandler {
+	return &DashboardHandler{cfg: cfg, db: database}
+}
+
+// --- Overview ---
+
+type dashboardData struct {
+	baseData
+	PendingCount int
+	Upcoming     []db.BookingWithEventType
+}
+
+func (h *DashboardHandler) HandleIndex(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	count, _ := db.CountPendingForUser(h.db, user.ID)
+	upcoming, _ := db.ListUpcomingConfirmedForUser(h.db, user.ID, 5)
+	render(w, "dashboard/index.html", dashboardData{base(r, user), count, upcoming})
+}
+
+// --- Calendars ---
+
+type calendarsData struct {
+	baseData
+	Calendars []db.Calendar
+	Error     string
+}
+
+func (h *DashboardHandler) HandleCalendarsGet(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	cals, _ := db.ListCalendars(h.db, user.ID)
+	render(w, "dashboard/calendars.html", calendarsData{base(r, user), cals, ""})
+}
+
+func (h *DashboardHandler) HandleCalendarsPost(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	r.ParseForm()
+
+	calURL := strings.TrimRight(r.FormValue("caldav_url"), "/")
+	calUser := r.FormValue("username")
+	calPass := r.FormValue("password")
+	displayName := r.FormValue("display_name")
+	color := r.FormValue("color")
+	if color == "" {
+		color = "#6366f1"
+	}
+
+	showError := func(msg string) {
+		cals, _ := db.ListCalendars(h.db, user.ID)
+		render(w, "dashboard/calendars.html", calendarsData{base(r, user), cals, msg})
+	}
+
+	if err := calendar.VerifyCredentials(r.Context(), calURL, calUser, calPass); err != nil {
+		showError(fmt.Sprintf("Could not connect to CalDAV server: %v", err))
+		return
+	}
+
+	encPass, err := crypto.Encrypt(h.cfg.SessionSecret, []byte(calPass))
+	if err != nil {
+		showError("Encryption error")
+		return
+	}
+
+	_, err = db.CreateCalendar(h.db, &db.Calendar{
+		UserID:      user.ID,
+		CalDAVURL:   calURL,
+		Username:    calUser,
+		Password:    string(encPass),
+		DisplayName: displayName,
+		Color:       color,
+	})
+	if err != nil {
+		showError("Could not save calendar")
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard/calendars", http.StatusSeeOther)
+}
+
+func (h *DashboardHandler) HandleCalendarDelete(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	db.DeleteCalendar(h.db, id, user.ID)
+	// HTMX: return empty 200 (the row removes itself via hx-swap="outerHTML")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *DashboardHandler) HandleCalendarSync(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	cal, err := db.GetCalendar(h.db, id, user.ID)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	now := time.Now()
+	from := now.Add(-time.Hour)
+	to := now.Add(syncWindowDays * 24 * time.Hour)
+
+	if err := calendar.SyncCalendar(r.Context(), cal, h.cfg.SessionSecret, h.db, from, to); err != nil {
+		http.Error(w, fmt.Sprintf("sync failed: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	db.UpdateLastSynced(h.db, id, now)
+	http.Redirect(w, r, "/dashboard/calendars", http.StatusSeeOther)
+}
+
+// --- Availability ---
+
+type availabilityData struct {
+	baseData
+	Rules   []db.AvailabilityRule
+	Weekdays []string
+}
+
+var weekdayNames = []string{"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
+
+func (h *DashboardHandler) HandleAvailabilityGet(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	rules, _ := db.ListAvailabilityRules(h.db, user.ID)
+	// Ensure we have a row for each weekday (fill gaps)
+	byDay := make(map[int]db.AvailabilityRule)
+	for _, rule := range rules {
+		byDay[rule.Weekday] = rule
+	}
+	full := make([]db.AvailabilityRule, 7)
+	for i := 0; i < 7; i++ {
+		if r, ok := byDay[i]; ok {
+			full[i] = r
+		} else {
+			full[i] = db.AvailabilityRule{Weekday: i, StartTime: "09:00", EndTime: "17:00"}
+		}
+	}
+	render(w, "dashboard/availability.html", availabilityData{base(r, user), full, weekdayNames})
+}
+
+func (h *DashboardHandler) HandleAvailabilityPost(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	r.ParseForm()
+
+	var rules []db.AvailabilityRule
+	for i := 0; i < 7; i++ {
+		key := fmt.Sprintf("day_%d", i)
+		active := r.FormValue(key+"_active") == "on"
+		start := r.FormValue(key + "_start")
+		end := r.FormValue(key + "_end")
+		if start == "" || end == "" {
+			continue
+		}
+		rules = append(rules, db.AvailabilityRule{
+			UserID:    user.ID,
+			Weekday:   i,
+			StartTime: start,
+			EndTime:   end,
+			Active:    active,
+		})
+	}
+
+	if err := db.ReplaceAvailabilityRules(h.db, user.ID, rules); err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard/availability", http.StatusSeeOther)
+}
+
+// --- Event Types ---
+
+type eventTypesData struct {
+	baseData
+	EventTypes []db.EventType
+	BaseURL    string
+	Error      string
+}
+
+func (h *DashboardHandler) HandleEventTypesGet(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	ets, _ := db.ListEventTypes(h.db, user.ID)
+	render(w, "dashboard/event-types.html", eventTypesData{base(r, user), ets, h.cfg.BaseURL, ""})
+}
+
+func (h *DashboardHandler) HandleEventTypesPost(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	r.ParseForm()
+
+	slug := slugify(r.FormValue("slug"))
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	duration, _ := strconv.Atoi(r.FormValue("duration_minutes"))
+	color := r.FormValue("color")
+	if color == "" {
+		color = "#6366f1"
+	}
+	bookingWindow, err := strconv.Atoi(r.FormValue("booking_window_days"))
+	if err != nil || bookingWindow <= 0 {
+		bookingWindow = 60
+	}
+
+	showError := func(msg string) {
+		ets, _ := db.ListEventTypes(h.db, user.ID)
+		render(w, "dashboard/event-types.html", eventTypesData{base(r, user), ets, h.cfg.BaseURL, msg})
+	}
+
+	if slug == "" || title == "" || duration <= 0 {
+		showError("Title, slug, and duration are required")
+		return
+	}
+
+	_, err = db.CreateEventType(h.db, &db.EventType{
+		UserID:             user.ID,
+		Slug:               slug,
+		Title:              title,
+		Description:        description,
+		DurationMinutes:    duration,
+		Color:              color,
+		BookingWindowDays:  bookingWindow,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") {
+			showError("An event type with this slug already exists")
+		} else {
+			showError("Could not create event type")
+		}
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard/event-types", http.StatusSeeOther)
+}
+
+func (h *DashboardHandler) HandleEventTypeEditGet(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	et, err := db.GetEventType(h.db, id, user.ID)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	render(w, "dashboard/event-type-edit.html", struct {
+		baseData
+		EventType *db.EventType
+		Error     string
+	}{base(r, user), et, ""})
+}
+
+func (h *DashboardHandler) HandleEventTypePost(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	et, err := db.GetEventType(h.db, id, user.ID)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	r.ParseForm()
+	et.Title = r.FormValue("title")
+	et.Description = r.FormValue("description")
+	et.DurationMinutes, _ = strconv.Atoi(r.FormValue("duration_minutes"))
+	et.Color = r.FormValue("color")
+	bw, err := strconv.Atoi(r.FormValue("booking_window_days"))
+	if err == nil && bw > 0 {
+		et.BookingWindowDays = bw
+	}
+
+	if err := db.UpdateEventType(h.db, et); err != nil {
+		render(w, "dashboard/event-type-edit.html", struct {
+			baseData
+			EventType *db.EventType
+			Error     string
+		}{base(r, user), et, "Could not update event type"})
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard/event-types", http.StatusSeeOther)
+}
+
+func (h *DashboardHandler) HandleEventTypeToggle(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	db.ToggleEventType(h.db, id, user.ID)
+	http.Redirect(w, r, "/dashboard/event-types", http.StatusSeeOther)
+}
+
+// --- Bookings ---
+
+type bookingsData struct {
+	baseData
+	Bookings      []db.BookingWithEventType
+	StatusFilter  string
+	StatusOptions []string
+}
+
+func (h *DashboardHandler) HandleBookingsGet(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	status := r.URL.Query().Get("status")
+	bookings, _ := db.ListBookingsForUser(h.db, user.ID, status, 100)
+	render(w, "dashboard/bookings.html", bookingsData{
+		base(r, user),
+		bookings,
+		status,
+		[]string{"", "PENDING", "CONFIRMED", "REJECTED", "CANCELLED"},
+	})
+}
+
+func slugify(s string) string {
+	s = strings.ToLower(s)
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			b.WriteRune(r)
+		} else if r == ' ' || r == '_' {
+			b.WriteRune('-')
+		}
+	}
+	return strings.Trim(b.String(), "-")
+}

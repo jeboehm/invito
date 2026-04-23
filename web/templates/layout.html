@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{block "title" .}}Invito{{end}}</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+<header class="site-header">
+  <a href="/" class="logo">Invito</a>
+  <nav>
+    {{if .User}}
+      <a href="/dashboard">Dashboard</a>
+      <form method="post" action="/auth/logout" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <button type="submit" class="btn-link">Sign out</button>
+      </form>
+    {{else}}
+      <a href="/auth/login" class="btn">Sign in</a>
+    {{end}}
+  </nav>
+</header>
+<main>
+{{block "content" .}}{{end}}
+</main>
+</body>
+</html>

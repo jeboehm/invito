@@ -1,0 +1,13 @@
+{{define "booking/confirm.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}{{.Title}} — Invito{{end}}
+
+{{define "content"}}
+<div style="max-width:500px;margin:4rem auto;text-align:center">
+  <div style="font-size:3rem;margin-bottom:1rem">{{.Icon}}</div>
+  <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:.75rem">{{.Title}}</h1>
+  <p style="color:#6b7280">{{.Message}}</p>
+</div>
+{{end}}

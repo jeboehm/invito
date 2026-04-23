@@ -1,0 +1,47 @@
+{{define "dashboard/event-type-edit.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}Edit Event Type — Invito{{end}}
+
+{{define "content"}}
+{{template "dash-nav" .}}
+<div class="page-header">
+  <h1>Edit: {{.EventType.Title}}</h1>
+  <a href="/dashboard/event-types" class="btn">← Back</a>
+</div>
+
+{{if .Error}}
+<div class="alert alert-error">{{.Error}}</div>
+{{end}}
+
+<form method="post" action="/dashboard/event-types/{{.EventType.ID}}" style="max-width:500px">
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+  <div class="form-group">
+    <label>Title</label>
+    <input type="text" name="title" required value="{{.EventType.Title}}">
+  </div>
+  <div class="form-group">
+    <label>Slug</label>
+    <input type="text" value="{{.EventType.Slug}}" disabled style="background:#f3f4f6">
+    <p class="form-hint">Slug cannot be changed after creation.</p>
+  </div>
+  <div class="form-group">
+    <label>Description</label>
+    <textarea name="description">{{.EventType.Description}}</textarea>
+  </div>
+  <div class="form-group">
+    <label>Duration (minutes)</label>
+    <input type="number" name="duration_minutes" required value="{{.EventType.DurationMinutes}}" min="5" max="480">
+  </div>
+  <div class="form-group">
+    <label>Booking window (days)</label>
+    <input type="number" name="booking_window_days" value="{{.EventType.BookingWindowDays}}" min="1" max="365">
+  </div>
+  <div class="form-group">
+    <label>Color</label>
+    <input type="color" name="color" value="{{.EventType.Color}}">
+  </div>
+  <button type="submit" class="btn btn-primary">Save changes</button>
+</form>
+{{end}}

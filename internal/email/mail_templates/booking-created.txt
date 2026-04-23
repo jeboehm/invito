@@ -1,0 +1,16 @@
+New booking request: {{.EventTitle}} with {{.GuestName}}
+
+{{.GuestName}} ({{.GuestEmail}}) wants to book {{.EventTitle}}.
+
+Date & Time: {{.StartAt.Format "Monday, January 2, 2006 at 15:04 UTC"}}
+{{if .GuestNote}}
+Note from guest:
+{{.GuestNote}}
+{{end}}
+To confirm this booking, click:
+{{.ConfirmURL}}
+
+To reject this booking, click:
+{{.RejectURL}}
+
+This request will expire in 24 hours.

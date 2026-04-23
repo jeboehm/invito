@@ -1,0 +1,128 @@
+# Invito — development Docker Compose
+#
+# Services:
+#   dex       OIDC provider      → http://localhost:5556
+#   nextcloud CalDAV server      → http://localhost:8081
+#   mailpit   SMTP catch-all     → http://localhost:8025  (web UI)
+#   invito    the app itself     → http://localhost:8080
+#
+# Quick start (macOS + Docker Desktop — no extra setup needed):
+#
+#   docker compose up
+#
+#   Then open http://localhost:8080 and sign in with:
+#     dev@example.com / password
+#
+#   Add a CalDAV calendar in the dashboard:
+#     URL:      http://nextcloud/remote.php/dav/
+#     User:     admin
+#     Password: admin
+#
+#   All outgoing mail is caught by Mailpit at http://localhost:8025.
+#
+# Linux (Docker Engine without Docker Desktop):
+#   Add to /etc/hosts:  127.0.0.1  host.docker.internal
+#   Then run normally.
+#
+# Running Invito locally instead of in Docker:
+#   docker compose up dex nextcloud mailpit
+#   source dev/local.env && go run ./cmd/invito
+
+name: invito-dev
+
+services:
+
+  # ── Dex ─────────────────────────────────────────────────────────────────────
+  dex:
+    image: ghcr.io/dexidp/dex:v2.41.1
+    command: dex serve /etc/dex/config.yaml
+    ports:
+      - "5556:5556"
+    volumes:
+      - ./dev/dex/config.yaml:/etc/dex/config.yaml:ro
+      - dex-data:/var/dex
+    networks:
+      - invito
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5556/healthz/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Nextcloud ────────────────────────────────────────────────────────────────
+  nextcloud:
+    image: nextcloud:30-apache
+    ports:
+      - "8081:80"
+    environment:
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: admin
+      NEXTCLOUD_TRUSTED_DOMAINS: "nextcloud localhost 127.0.0.1"
+    volumes:
+      - nextcloud-data:/var/www/html
+    networks:
+      - invito
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost/status.php"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s  # Nextcloud takes a while on first run
+
+  # ── Mailpit (SMTP catch-all) ─────────────────────────────────────────────────
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"  # web UI
+      - "1025:1025"  # SMTP (no auth required)
+    networks:
+      - invito
+    restart: unless-stopped
+
+  # ── Invito ───────────────────────────────────────────────────────────────────
+  invito:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      INVITO_BASE_URL: http://localhost:8080
+      INVITO_DB_PATH: /data/invito.db
+      INVITO_LISTEN_ADDR: :8080
+
+      # 32-byte dev key — DO NOT use in production
+      INVITO_SESSION_SECRET: "0000000000000000000000000000000000000000000000000000000000000001"
+
+      INVITO_OIDC_ISSUER: http://dex:5556
+      INVITO_OIDC_CLIENT_ID: invito
+      INVITO_OIDC_CLIENT_SECRET: invito-dev-secret
+
+      # Mailpit catches all outgoing mail (no credentials needed)
+      INVITO_SMTP_HOST: mailpit
+      INVITO_SMTP_PORT: 1025
+      INVITO_SMTP_FROM: invito@localhost
+
+      # Fast sync for dev
+      INVITO_SYNC_INTERVAL: 1m
+      INVITO_BOOKING_TTL: 24h
+    volumes:
+      - invito-data:/data
+    networks:
+      - invito
+    depends_on:
+      dex:
+        condition: service_healthy
+      nextcloud:
+        condition: service_started
+      mailpit:
+        condition: service_started
+    restart: unless-stopped
+
+networks:
+  invito:
+
+volumes:
+  dex-data:
+  nextcloud-data:
+  invito-data:

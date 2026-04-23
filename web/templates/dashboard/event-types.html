@@ -1,0 +1,73 @@
+{{define "dashboard/event-types.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}Event Types — Invito{{end}}
+
+{{define "content"}}
+{{template "dash-nav" .}}
+<div class="page-header">
+  <h1>Event Types</h1>
+</div>
+
+{{if .Error}}
+<div class="alert alert-error">{{.Error}}</div>
+{{end}}
+
+{{if .EventTypes}}
+<div style="margin-bottom:2rem">
+  {{range .EventTypes}}
+  <div class="card">
+    <div>
+      <span class="color-dot" style="background:{{.Color}}"></span>
+      <span class="card-title"> {{.Title}}</span>
+      <div class="card-meta">{{.DurationMinutes}} min · {{if .Active}}Active{{else}}Inactive{{end}}</div>
+      <div class="card-meta" style="margin-top:.2rem">
+        Share: <a href="{{$.BaseURL}}/{{$.User.Username}}/{{.Slug}}">{{$.BaseURL}}/{{$.User.Username}}/{{.Slug}}</a>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-shrink:0">
+      <a href="/dashboard/event-types/{{.ID}}/edit" class="btn">Edit</a>
+      <form method="post" action="/dashboard/event-types/{{.ID}}/toggle">
+        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+        <button type="submit" class="btn">{{if .Active}}Deactivate{{else}}Activate{{end}}</button>
+      </form>
+    </div>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+<details>
+  <summary style="cursor:pointer;font-weight:600;margin-bottom:1rem">Create event type</summary>
+  <form method="post" action="/dashboard/event-types" style="max-width:500px;margin-top:1rem">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" name="title" required placeholder="30-min intro call">
+    </div>
+    <div class="form-group">
+      <label>Slug</label>
+      <input type="text" name="slug" required placeholder="30min-intro">
+      <p class="form-hint">Used in the booking URL. Only lowercase letters, numbers, and hyphens.</p>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea name="description" placeholder="What is this meeting about?"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Duration (minutes)</label>
+      <input type="number" name="duration_minutes" required value="30" min="5" max="480">
+    </div>
+    <div class="form-group">
+      <label>Booking window (days)</label>
+      <input type="number" name="booking_window_days" value="60" min="1" max="365">
+    </div>
+    <div class="form-group">
+      <label>Color</label>
+      <input type="color" name="color" value="#6366f1">
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+  </form>
+</details>
+{{end}}

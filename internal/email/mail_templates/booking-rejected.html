@@ -1,0 +1,6 @@
+{{define "booking-rejected.html"}}<!DOCTYPE html>
+<html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:2rem">
+<h2>Booking request not accepted</h2>
+<p>Unfortunately your booking request for <strong>{{.EventTitle}}</strong> on {{.StartAt.Format "Monday, January 2, 2006"}} was not accepted.</p>
+<p>You are welcome to request another time slot.</p>
+</body></html>{{end}}

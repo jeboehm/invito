@@ -1,0 +1,5 @@
+Your booking request for {{.EventTitle}} was not accepted
+
+Unfortunately your booking request for {{.EventTitle}} on {{.StartAt.Format "January 2, 2006"}} was not accepted.
+
+You are welcome to request another time slot.

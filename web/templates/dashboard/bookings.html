@@ -1,0 +1,46 @@
+{{define "dashboard/bookings.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}Bookings — Invito{{end}}
+
+{{define "content"}}
+{{template "dash-nav" .}}
+<div class="page-header">
+  <h1>Bookings</h1>
+</div>
+
+<div style="display:flex;gap:.5rem;margin-bottom:1.5rem">
+  {{range .StatusOptions}}
+  <a href="/dashboard/bookings{{if .}}?status={{.}}{{end}}"
+     class="btn{{if eq . $.StatusFilter}} btn-primary{{end}}">
+    {{if .}}{{.}}{{else}}All{{end}}
+  </a>
+  {{end}}
+</div>
+
+{{if .Bookings}}
+<table>
+  <thead>
+    <tr>
+      <th>Date & Time</th>
+      <th>Guest</th>
+      <th>Event Type</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+  {{range .Bookings}}
+  <tr>
+    <td>{{.StartAt.Format "Jan 2, 2006 15:04"}}</td>
+    <td>{{.GuestName}}<br><small style="color:#6b7280">{{.GuestEmail}}</small></td>
+    <td>{{.EventType.Title}}</td>
+    <td><span class="badge badge-{{.Status | lower}}">{{.Status}}</span></td>
+  </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}
+<p style="color:#6b7280">No bookings found.</p>
+{{end}}
+{{end}}

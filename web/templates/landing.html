@@ -1,0 +1,16 @@
+{{template "layout.html" .}}
+
+{{define "title"}}Invito — Self-hosted scheduling{{end}}
+
+{{define "content"}}
+<section class="hero">
+  <h1>Your calendar. Your server. Your rules.</h1>
+  <p>Invito is a lightweight, self-hosted scheduling tool that lets guests book time with you — without sharing your calendar data with anyone else.</p>
+  <ul class="feature-list">
+    <li>Reads your existing CalDAV calendars</li>
+    <li>One binary, one SQLite file, one config</li>
+    <li>Guests book; you confirm; both get an email</li>
+  </ul>
+  <a href="/auth/login" class="btn btn-primary">Get started →</a>
+</section>
+{{end}}
