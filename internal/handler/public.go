@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jboehm/invito/internal/auth"
 	"github.com/jboehm/invito/internal/booking"
 	"github.com/jboehm/invito/internal/calendar"
 	"github.com/jboehm/invito/internal/config"
@@ -22,7 +23,7 @@ func NewPublicHandler(cfg *config.Config, database *sql.DB, bookingSvc *booking.
 }
 
 func (h *PublicHandler) HandleLanding(w http.ResponseWriter, r *http.Request) {
-	render(w, "landing.html", base(r, nil))
+	render(w, "landing.html", base(r, auth.UserFromContext(r.Context())))
 }
 
 type bookingListData struct {

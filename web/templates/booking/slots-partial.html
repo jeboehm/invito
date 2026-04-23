@@ -1,6 +1,6 @@
 {{define "booking/slots-partial.html"}}
 {{if .Slots}}
-<form method="post" action="/{{.User.Username}}/{{.EventType.Slug}}/book">
+<form method="post" action="/calendar/{{.User.Username}}/{{.EventType.Slug}}/book">
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
   <input type="hidden" name="slot" id="selected-slot">
 

@@ -50,6 +50,7 @@ func main() {
 	pubH := handler.NewPublicHandler(cfg, database, bookingSvc)
 
 	requireAuth := auth.RequireAuth(database)
+	optionalAuth := auth.OptionalAuth(database)
 
 	mux := http.NewServeMux()
 
@@ -58,7 +59,7 @@ func main() {
 	mux.Handle("GET /static/{path...}", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 
 	// Public routes
-	mux.HandleFunc("GET /", pubH.HandleLanding)
+	mux.Handle("GET /", optionalAuth(http.HandlerFunc(pubH.HandleLanding)))
 	mux.HandleFunc("GET /calendar/{username}/", pubH.HandleUserBookingPage)
 	mux.HandleFunc("GET /calendar/{username}/{slug}", pubH.HandleSlotPicker)
 	mux.HandleFunc("POST /calendar/{username}/{slug}/book", pubH.HandleBookingSubmit)
@@ -87,6 +88,8 @@ func main() {
 	dash("POST", "/dashboard/event-types/{id}", dashH.HandleEventTypePost)
 	dash("POST", "/dashboard/event-types/{id}/toggle", dashH.HandleEventTypeToggle)
 	dash("GET", "/dashboard/bookings", dashH.HandleBookingsGet)
+	dash("GET", "/dashboard/profile", dashH.HandleProfileGet)
+	dash("POST", "/dashboard/profile", dashH.HandleProfilePost)
 
 	// Global middleware
 	rootHandler := middleware.Logging(middleware.CSRF(mux))

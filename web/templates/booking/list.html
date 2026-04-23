@@ -13,7 +13,7 @@
 
   {{if .EventTypes}}
   {{range .EventTypes}}
-  <a href="/{{$.User.Username}}/{{.Slug}}" style="display:block;text-decoration:none;color:inherit">
+  <a href="/calendar/{{$.User.Username}}/{{.Slug}}" style="display:block;text-decoration:none;color:inherit">
     <div class="card" style="cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='{{.Color}}'" onmouseout="this.style.borderColor='#e5e7eb'">
       <div>
         <span class="color-dot" style="background:{{.Color}}"></span>

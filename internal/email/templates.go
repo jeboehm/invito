@@ -22,14 +22,15 @@ func init() {
 }
 
 type BookingEmailData struct {
-	GuestName     string
-	GuestEmail    string
-	GuestNote     string
-	HostName      string
-	EventTitle    string
-	StartAt       time.Time
-	ConfirmURL    string
-	RejectURL     string
+	GuestName    string
+	GuestEmail   string
+	GuestNote    string
+	HostName     string
+	EventTitle   string
+	GuestMessage string
+	StartAt      time.Time
+	ConfirmURL   string
+	RejectURL    string
 }
 
 func RenderBookingCreated(data BookingEmailData) (text, html string, err error) {

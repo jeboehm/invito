@@ -19,13 +19,19 @@ func UpsertUser(db *sql.DB, sub, email, name, username string) (*User, error) {
 		INSERT INTO users (oidc_sub, email, name, username)
 		VALUES (?, ?, ?, ?)
 		ON CONFLICT(oidc_sub) DO UPDATE SET
-			email = excluded.email,
-			name  = excluded.name
+			email = excluded.email
 	`, sub, email, name, username)
 	if err != nil {
 		return nil, err
 	}
 	return GetUserBySub(db, sub)
+}
+
+func UpdateUserProfile(db *sql.DB, id int64, name, username string) error {
+	_, err := db.Exec(`
+		UPDATE users SET name = ?, username = ? WHERE id = ?
+	`, name, username, id)
+	return err
 }
 
 func GetUserBySub(db *sql.DB, sub string) (*User, error) {

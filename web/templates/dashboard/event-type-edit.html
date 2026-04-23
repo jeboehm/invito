@@ -29,6 +29,12 @@
   <div class="form-group">
     <label>Description</label>
     <textarea name="description">{{.EventType.Description}}</textarea>
+    <p class="form-hint">Shown on the booking page.</p>
+  </div>
+  <div class="form-group">
+    <label>Message to guests</label>
+    <textarea name="guest_message">{{.EventType.GuestMessage}}</textarea>
+    <p class="form-hint">Included in confirmation and rejection emails sent to guests.</p>
   </div>
   <div class="form-group">
     <label>Duration (minutes)</label>

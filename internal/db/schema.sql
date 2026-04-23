@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS event_types (
     slug                TEXT NOT NULL,
     title               TEXT NOT NULL,
     description         TEXT,
+    guest_message       TEXT,
     duration_minutes    INTEGER NOT NULL,
     color               TEXT NOT NULL DEFAULT '#6366f1',
     booking_window_days INTEGER NOT NULL DEFAULT 60,

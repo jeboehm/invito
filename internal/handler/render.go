@@ -26,6 +26,7 @@ var templateDeps = map[string][]string{
 	"dashboard/event-types.html":     {"layout.html", "dashboard/index.html", "dashboard/event-types.html"},
 	"dashboard/event-type-edit.html": {"layout.html", "dashboard/index.html", "dashboard/event-type-edit.html"},
 	"dashboard/bookings.html":        {"layout.html", "dashboard/index.html", "dashboard/bookings.html"},
+	"dashboard/profile.html":         {"layout.html", "dashboard/index.html", "dashboard/profile.html"},
 }
 
 var templates map[string]*template.Template
