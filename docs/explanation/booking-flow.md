@@ -17,10 +17,10 @@ There are four parties involved:
 
 The host shares one of two link types:
 
-| Link type  | URL                  | Effect                                        |
-| ---------- | -------------------- | --------------------------------------------- |
-| Pre-filled | `/{username}/{slug}` | Guest lands directly on a specific event type |
-| Generic    | `/{username}/`       | Guest first chooses an event type             |
+| Link type  | URL                           | Effect                                        |
+| ---------- | ----------------------------- | --------------------------------------------- |
+| Pre-filled | `/calendar/{username}/{slug}` | Guest lands directly on a specific event type |
+| Generic    | `/calendar/{username}/`       | Guest first chooses an event type             |
 
 Both paths eventually land the guest on the slot picker for a specific event type.
 
@@ -29,7 +29,7 @@ Both paths eventually land the guest on the slot picker for a specific event typ
 The slot picker shows a date navigation. When the guest selects a date, an HTMX request fetches available slots for that day:
 
 ```
-GET /{username}/{slug}?date=2026-05-15
+GET /calendar/{username}/{slug}?date=2026-05-15
 ```
 
 Invito calculates available slots by:

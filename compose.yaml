@@ -31,7 +31,6 @@
 name: invito-dev
 
 services:
-
   # ── Dex ─────────────────────────────────────────────────────────────────────
   dex:
     image: ghcr.io/dexidp/dex:v2.41.1
@@ -69,14 +68,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 20
-      start_period: 60s  # Nextcloud takes a while on first run
+      start_period: 60s # Nextcloud takes a while on first run
 
   # ── Mailpit (SMTP catch-all) ─────────────────────────────────────────────────
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - "8025:8025"  # web UI
-      - "1025:1025"  # SMTP (no auth required)
+      - "8025:8025" # web UI
+      - "1025:1025" # SMTP (no auth required)
     networks:
       - invito
     restart: unless-stopped

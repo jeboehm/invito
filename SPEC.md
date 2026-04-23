@@ -100,8 +100,8 @@ Invito is a lightweight, self-hosted scheduling tool for individuals and small t
 Each OIDC-authenticated account becomes a user. Each user has an independent profile with their own calendars, event types, and availability rules. Public booking URLs are scoped to the user:
 
 ```
-/{username}/                    → lists the user's active event types
-/{username}/{event-type-slug}   → slot picker for a specific event type
+/calendar/{username}/                    → lists the user's active event types
+/calendar/{username}/{event-type-slug}   → slot picker for a specific event type
 ```
 
 `username` is derived from the OIDC `preferred_username` claim, lowercased and slugified at first login.
@@ -247,12 +247,12 @@ CREATE TABLE bookings (
 
 ### 5.2 Public Booking Pages
 
-| Route                                    | Behavior                                                |
-| ---------------------------------------- | ------------------------------------------------------- |
-| `GET /{username}/`                       | Lists all active EventTypes. No auth required.          |
-| `GET /{username}/{slug}`                 | Shows a date picker. Default: current week.             |
-| `GET /{username}/{slug}?date=YYYY-MM-DD` | Shows time slots for the given date (HTMX target).      |
-| `POST /{username}/{slug}/book`           | Creates a Booking (PENDING). Returns confirmation page. |
+| Route                                             | Behavior                                                |
+| ------------------------------------------------- | ------------------------------------------------------- |
+| `GET /calendar/{username}/`                       | Lists all active EventTypes. No auth required.          |
+| `GET /calendar/{username}/{slug}`                 | Shows a date picker. Default: current week.             |
+| `GET /calendar/{username}/{slug}?date=YYYY-MM-DD` | Shows time slots for the given date (HTMX target).      |
+| `POST /calendar/{username}/{slug}/book`           | Creates a Booking (PENDING). Returns confirmation page. |
 
 The booking form collects: guest name, guest email, optional note. CSRF protection via double-submit cookie.
 
@@ -348,15 +348,15 @@ See [docs/reference/api.md](docs/reference/api.md) for detailed request/response
 
 ### Public
 
-| Method | Path                                 | Description                           |
-| ------ | ------------------------------------ | ------------------------------------- |
-| GET    | `/`                                  | Landing page                          |
-| GET    | `/{username}/`                       | User's booking page — event type list |
-| GET    | `/{username}/{slug}`                 | Event type booking page — slot picker |
-| GET    | `/{username}/{slug}?date=YYYY-MM-DD` | HTMX partial: slot list for a date    |
-| POST   | `/{username}/{slug}/book`            | Submit booking request                |
-| GET    | `/booking/{token}/confirm`           | Confirm a pending booking             |
-| GET    | `/booking/{token}/reject`            | Reject a pending booking              |
+| Method | Path                                          | Description                           |
+| ------ | --------------------------------------------- | ------------------------------------- |
+| GET    | `/`                                           | Landing page                          |
+| GET    | `/calendar{username}/`                        | User's booking page — event type list |
+| GET    | `/calendar/{username}/{slug}`                 | Event type booking page — slot picker |
+| GET    | `/calendar/{username}/{slug}?date=YYYY-MM-DD` | HTMX partial: slot list for a date    |
+| POST   | `/calendar/{username}/{slug}/book`            | Submit booking request                |
+| GET    | `/booking/{token}/confirm`                    | Confirm a pending booking             |
+| GET    | `/booking/{token}/reject`                     | Reject a pending booking              |
 
 ### Auth
 

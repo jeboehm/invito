@@ -142,7 +142,7 @@ https://invito.example.com/{username}/intro
 
 Open the booking URL in a private browser window (to simulate a guest).
 
-1. Navigate to `/{username}/intro`.
+1. Navigate to `/calendar/{username}/intro`.
 2. Select today's date.
 3. Click an available time slot.
 4. Fill in a name and email address, then submit.
@@ -167,7 +167,7 @@ Check your calendar — the event should appear.
 
 ## You're done
 
-You now have a working Invito instance. Share `/{username}/` with anyone who needs to book time with you, or send direct links to specific event types.
+You now have a working Invito instance. Share `/calendar/{username}/` with anyone who needs to book time with you, or send direct links to specific event types.
 
 **Next steps:**
 

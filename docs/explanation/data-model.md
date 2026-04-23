@@ -39,7 +39,7 @@ Events are identified by `(calendar_id, uid)`. On each sync, existing rows are u
 
 An event type is a named, fixed-duration meeting kind that a user offers. Examples: "30-min intro call", "1-hour workshop", "15-min check-in".
 
-`slug` is the URL segment used in booking links: `/{username}/{slug}`. It is user-defined and must be unique per user. Changing a slug breaks any links that have been shared.
+`slug` is the URL segment used in booking links: `/calendar/{username}/{slug}`. It is user-defined and must be unique per user. Changing a slug breaks any links that have been shared.
 
 `booking_window_days` controls how far into the future guests can book. Slots beyond this window are not shown.
 

@@ -7,7 +7,7 @@ Invito provides two types of booking links. Choose the one that fits your use ca
 ### Generic link (guest chooses the event type)
 
 ```
-https://invito.example.com/{username}/
+https://invito.example.com/calendar/{username}/
 ```
 
 The guest lands on a page that lists all your active event types and picks one. Use this when you want to give someone access to all your meeting types — for example, in an email signature or on your website.
@@ -15,7 +15,7 @@ The guest lands on a page that lists all your active event types and picks one. 
 ### Pre-filled link (event type is fixed)
 
 ```
-https://invito.example.com/{username}/{slug}
+https://invito.example.com/calendar/{username}/{slug}
 ```
 
 The guest goes directly to the slot picker for a specific event type. Use this when you know what kind of meeting you want — for example, "book a 30-min intro call with me" in a proposal or outreach email.

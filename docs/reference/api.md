@@ -20,7 +20,7 @@ Landing page. Describes Invito and shows a "Sign in" call-to-action.
 
 ---
 
-### `GET /{username}/`
+### `GET /calendar/{username}/`
 
 Lists all active event types for the given user.
 
@@ -35,7 +35,7 @@ Lists all active event types for the given user.
 
 ---
 
-### `GET /{username}/{slug}`
+### `GET /calendar/{username}/{slug}`
 
 Slot picker for a specific event type. Shows a date navigation defaulting to the current week.
 
@@ -53,11 +53,11 @@ Slot picker for a specific event type. Shows a date navigation defaulting to the
 - `200 OK` — full HTML page (initial load) or HTML partial (HTMX request, identified by `HX-Request` header).
 - `404 Not Found` — unknown username or slug.
 
-**HTMX behavior:** When the user navigates to a date, the browser sends `GET /{username}/{slug}?date=YYYY-MM-DD` with `HX-Request: true`. Invito returns only the slot list fragment, which HTMX swaps into the page.
+**HTMX behavior:** When the user navigates to a date, the browser sends `GET /calendar/{username}/{slug}?date=YYYY-MM-DD` with `HX-Request: true`. Invito returns only the slot list fragment, which HTMX swaps into the page.
 
 ---
 
-### `POST /{username}/{slug}/book`
+### `POST /calendar/{username}/{slug}/book`
 
 Submits a booking request.
 
