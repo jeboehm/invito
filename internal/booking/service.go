@@ -71,13 +71,14 @@ func (s *Service) ConfirmBooking(ctx context.Context, token string) (*db.Booking
 		return b, nil
 	}
 
-	// CalDAV write-back (non-fatal)
+	// CalDAV write-back (non-fatal). Uses a detached context so the PUT request
+	// is not cancelled when the HTTP response is written.
 	go func() {
 		cals, err := db.ListCalendars(s.db, user.ID)
 		if err != nil || len(cals) == 0 {
 			return
 		}
-		if err := calendar.WriteEvent(ctx, &cals[0], s.key, b, et, b.GuestName); err != nil {
+		if err := calendar.WriteEvent(context.Background(), &cals[0], s.key, b, et, b.GuestName); err != nil {
 			log.Printf("caldav write-back: %v", err)
 		}
 	}()
