@@ -41,6 +41,58 @@ func (h *DashboardHandler) HandleIndex(w http.ResponseWriter, r *http.Request) {
 	render(w, "dashboard/index.html", dashboardData{base(r, user), count, upcoming})
 }
 
+// --- Profile ---
+
+type profileData struct {
+	baseData
+	BaseURL string
+	Error   string
+}
+
+func (h *DashboardHandler) HandleProfileGet(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	render(w, "dashboard/profile.html", profileData{base(r, user), h.cfg.BaseURL, ""})
+}
+
+func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	name := strings.TrimSpace(r.FormValue("name"))
+	username := slugify(r.FormValue("username"))
+
+	showError := func(msg string) {
+		render(w, "dashboard/profile.html", profileData{base(r, user), h.cfg.BaseURL, msg})
+	}
+
+	if name == "" {
+		showError("Display name cannot be empty")
+		return
+	}
+	if username == "" {
+		showError("Username slug cannot be empty")
+		return
+	}
+
+	if username != user.Username {
+		existing, err := db.GetUserByUsername(h.db, username)
+		if err == nil && existing.ID != user.ID {
+			showError("This username is already taken")
+			return
+		}
+	}
+
+	if err := db.UpdateUserProfile(h.db, user.ID, name, username); err != nil {
+		showError("Could not save profile")
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard/profile", http.StatusSeeOther)
+}
+
 // --- Calendars ---
 
 type calendarsData struct {
@@ -297,6 +349,7 @@ func (h *DashboardHandler) HandleEventTypePost(w http.ResponseWriter, r *http.Re
 	r.ParseForm()
 	et.Title = r.FormValue("title")
 	et.Description = r.FormValue("description")
+	et.GuestMessage = r.FormValue("guest_message")
 	et.DurationMinutes, _ = strconv.Atoi(r.FormValue("duration_minutes"))
 	et.Color = r.FormValue("color")
 	bw, err := strconv.Atoi(r.FormValue("booking_window_days"))
