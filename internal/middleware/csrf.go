@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"html/template"
@@ -9,9 +10,12 @@ import (
 
 const csrfCookieName = "invito_csrf"
 
+type csrfCtxKey struct{}
+
 func CSRF(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := csrfToken(w, r)
+		r = r.WithContext(context.WithValue(r.Context(), csrfCtxKey{}, token))
 
 		switch r.Method {
 		case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
@@ -47,6 +51,9 @@ func csrfToken(w http.ResponseWriter, r *http.Request) string {
 }
 
 func CSRFToken(r *http.Request) string {
+	if t, ok := r.Context().Value(csrfCtxKey{}).(string); ok && t != "" {
+		return t
+	}
 	if c, err := r.Cookie(csrfCookieName); err == nil {
 		return c.Value
 	}
