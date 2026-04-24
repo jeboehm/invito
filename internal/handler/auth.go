@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/jboehm/invito/internal/auth"
 	"github.com/jboehm/invito/internal/config"
@@ -80,7 +81,7 @@ func (h *AuthHandler) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionID, err := db.CreateSession(h.db, user.ID, 24*3600*1e9) // 24h
+	sessionID, err := db.CreateSession(h.db, user.ID, 24*time.Hour)
 	if err != nil {
 		http.Error(w, "session error", http.StatusInternalServerError)
 		return

@@ -24,3 +24,4 @@ func Logging(next http.Handler) http.Handler {
 		log.Printf("%s %s %d %s", r.Method, r.URL.Path, rw.status, time.Since(start))
 	})
 }
+

@@ -15,12 +15,14 @@ var ok = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 })
 
+var csrf = middleware.CSRF(false)
+
 // getToken performs a GET through the CSRF middleware and returns the cookie token.
 func getToken(t *testing.T) string {
 	t.Helper()
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	middleware.CSRF(ok).ServeHTTP(rec, req)
+	csrf(ok).ServeHTTP(rec, req)
 	for _, c := range rec.Result().Cookies() {
 		if c.Name == "invito_csrf" {
 			return c.Value
@@ -40,7 +42,7 @@ func TestCSRF_GetSetsCookie(t *testing.T) {
 func TestCSRF_GetDoesNotValidate(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	middleware.CSRF(ok).ServeHTTP(rec, req)
+	csrf(ok).ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("GET without token: got %d, want 200", rec.Code)
 	}
@@ -53,7 +55,7 @@ func TestCSRF_TokenInContextOnFirstVisit(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	middleware.CSRF(handler).ServeHTTP(httptest.NewRecorder(), req)
+	csrf(handler).ServeHTTP(httptest.NewRecorder(), req)
 	if gotToken == "" {
 		t.Fatal("CSRFToken(r) returned empty on first visit — context propagation broken")
 	}
@@ -68,7 +70,7 @@ func TestCSRF_PostWithFormToken(t *testing.T) {
 	req.AddCookie(&http.Cookie{Name: "invito_csrf", Value: token})
 
 	rec := httptest.NewRecorder()
-	middleware.CSRF(ok).ServeHTTP(rec, req)
+	csrf(ok).ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("POST with valid form token: got %d, want 200", rec.Code)
 	}
@@ -82,7 +84,7 @@ func TestCSRF_PostWithHeaderToken(t *testing.T) {
 	req.AddCookie(&http.Cookie{Name: "invito_csrf", Value: token})
 
 	rec := httptest.NewRecorder()
-	middleware.CSRF(ok).ServeHTTP(rec, req)
+	csrf(ok).ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("POST with valid header token: got %d, want 200", rec.Code)
 	}
@@ -97,7 +99,7 @@ func TestCSRF_PostWithWrongToken(t *testing.T) {
 	req.AddCookie(&http.Cookie{Name: "invito_csrf", Value: token})
 
 	rec := httptest.NewRecorder()
-	middleware.CSRF(ok).ServeHTTP(rec, req)
+	csrf(ok).ServeHTTP(rec, req)
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("POST with wrong token: got %d, want 403", rec.Code)
 	}
@@ -110,7 +112,7 @@ func TestCSRF_PostWithMissingToken(t *testing.T) {
 	req.AddCookie(&http.Cookie{Name: "invito_csrf", Value: token})
 
 	rec := httptest.NewRecorder()
-	middleware.CSRF(ok).ServeHTTP(rec, req)
+	csrf(ok).ServeHTTP(rec, req)
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("POST with missing token: got %d, want 403", rec.Code)
 	}

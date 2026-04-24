@@ -61,7 +61,7 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	name := strings.TrimSpace(r.FormValue("name"))
+	name := strings.TrimSpace(singleLine(r.FormValue("name")))
 	username := slugify(r.FormValue("username"))
 
 	showError := func(msg string) {
@@ -111,11 +111,11 @@ func (h *DashboardHandler) HandleCalendarsPost(w http.ResponseWriter, r *http.Re
 	user := auth.UserFromContext(r.Context())
 	r.ParseForm()
 
-	calURL := strings.TrimRight(r.FormValue("caldav_url"), "/")
-	calUser := r.FormValue("username")
-	calPass := r.FormValue("password")
-	displayName := r.FormValue("display_name")
-	color := r.FormValue("color")
+	calURL := strings.TrimRight(singleLine(r.FormValue("caldav_url")), "/")
+	calUser := singleLine(r.FormValue("username"))
+	calPass := singleLine(r.FormValue("password"))
+	displayName := singleLine(r.FormValue("display_name"))
+	color := singleLine(r.FormValue("color"))
 	if color == "" {
 		color = "#6366f1"
 	}
@@ -270,10 +270,10 @@ func (h *DashboardHandler) HandleEventTypesPost(w http.ResponseWriter, r *http.R
 	r.ParseForm()
 
 	slug := slugify(r.FormValue("slug"))
-	title := r.FormValue("title")
+	title := singleLine(r.FormValue("title"))
 	description := r.FormValue("description")
 	duration, _ := strconv.Atoi(r.FormValue("duration_minutes"))
-	color := r.FormValue("color")
+	color := singleLine(r.FormValue("color"))
 	if color == "" {
 		color = "#6366f1"
 	}
@@ -347,12 +347,12 @@ func (h *DashboardHandler) HandleEventTypePost(w http.ResponseWriter, r *http.Re
 	}
 
 	r.ParseForm()
-	et.Title = r.FormValue("title")
+	et.Title = singleLine(r.FormValue("title"))
 	et.Description = r.FormValue("description")
 	et.ConfirmedMessage = r.FormValue("confirmed_message")
 	et.RejectedMessage = r.FormValue("rejected_message")
 	et.DurationMinutes, _ = strconv.Atoi(r.FormValue("duration_minutes"))
-	et.Color = r.FormValue("color")
+	et.Color = singleLine(r.FormValue("color"))
 	bw, err := strconv.Atoi(r.FormValue("booking_window_days"))
 	if err == nil && bw > 0 {
 		et.BookingWindowDays = bw

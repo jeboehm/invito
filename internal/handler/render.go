@@ -59,6 +59,11 @@ func baseNoNav(r *http.Request) baseData {
 	return baseData{CSRFToken: middleware.CSRFToken(r), HideNav: true}
 }
 
+var singleLineReplacer = strings.NewReplacer("\r", "", "\n", "")
+
+// singleLine strips CR and LF so values are safe in single-line contexts (iCal, email headers).
+func singleLine(s string) string { return singleLineReplacer.Replace(s) }
+
 func render(w http.ResponseWriter, name string, data any) {
 	t, ok := templates[name]
 	if !ok {

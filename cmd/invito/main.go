@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -62,7 +63,8 @@ func main() {
 	mux.Handle("GET /", optionalAuth(http.HandlerFunc(pubH.HandleLanding)))
 	mux.HandleFunc("GET /calendar/{username}/", pubH.HandleUserBookingPage)
 	mux.HandleFunc("GET /calendar/{username}/{slug}", pubH.HandleSlotPicker)
-	mux.HandleFunc("POST /calendar/{username}/{slug}/book", pubH.HandleBookingSubmit)
+	bookingLimiter := middleware.RateLimit(ctx, 10.0/60, 5)
+	mux.Handle("POST /calendar/{username}/{slug}/book", bookingLimiter(http.HandlerFunc(pubH.HandleBookingSubmit)))
 	mux.HandleFunc("GET /booking/{token}/confirm", pubH.HandleBookingConfirm)
 	mux.HandleFunc("GET /booking/{token}/reject", pubH.HandleBookingReject)
 
@@ -92,15 +94,19 @@ func main() {
 	dash("POST", "/dashboard/profile", dashH.HandleProfilePost)
 
 	// Global middleware
-	rootHandler := middleware.Logging(middleware.CSRF(mux))
+	rootHandler := middleware.Logging(middleware.SecurityHeaders(middleware.CSRF(strings.HasPrefix(cfg.BaseURL, "https://"))(mux)))
 
 	// Background jobs
 	go calendar.StartSyncLoop(ctx, database, cfg.SessionSecret, cfg.SyncInterval)
 	go bookingSvc.StartGCLoop(ctx)
 
 	srv := &http.Server{
-		Addr:    cfg.ListenAddr,
-		Handler: rootHandler,
+		Addr:              cfg.ListenAddr,
+		Handler:           rootHandler,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	go func() {

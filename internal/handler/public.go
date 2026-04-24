@@ -173,8 +173,8 @@ func (h *PublicHandler) HandleBookingSubmit(w http.ResponseWriter, r *http.Reque
 
 	b := &db.Booking{
 		EventTypeID:   et.ID,
-		GuestName:     r.FormValue("guest_name"),
-		GuestEmail:    r.FormValue("guest_email"),
+		GuestName:     singleLine(r.FormValue("guest_name")),
+		GuestEmail:    singleLine(r.FormValue("guest_email")),
 		GuestNote:     r.FormValue("guest_note"),
 		StartAt:       startAt,
 		EndAt:         endAt,
