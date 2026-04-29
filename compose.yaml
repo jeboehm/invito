@@ -44,7 +44,7 @@ services:
       - invito
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5556/healthz/live"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:5556/healthz"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -80,48 +80,9 @@ services:
       - invito
     restart: unless-stopped
 
-  # ── Invito ───────────────────────────────────────────────────────────────────
-  invito:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      INVITO_BASE_URL: http://localhost:8080
-      INVITO_DB_PATH: /data/invito.db
-      INVITO_LISTEN_ADDR: :8080
-
-      # 32-byte dev key — DO NOT use in production
-      INVITO_SESSION_SECRET: "0000000000000000000000000000000000000000000000000000000000000001"
-
-      INVITO_OIDC_ISSUER: http://dex:5556
-      INVITO_OIDC_CLIENT_ID: invito
-      INVITO_OIDC_CLIENT_SECRET: invito-dev-secret
-
-      # Mailpit catches all outgoing mail (no credentials needed)
-      INVITO_SMTP_HOST: mailpit
-      INVITO_SMTP_PORT: 1025
-      INVITO_SMTP_FROM: invito@localhost
-
-      # Fast sync for dev
-      INVITO_SYNC_INTERVAL: 1m
-      INVITO_BOOKING_TTL: 24h
-    volumes:
-      - invito-data:/data
-    networks:
-      - invito
-    depends_on:
-      dex:
-        condition: service_healthy
-      nextcloud:
-        condition: service_started
-      mailpit:
-        condition: service_started
-    restart: unless-stopped
-
 networks:
   invito:
 
 volumes:
   dex-data:
   nextcloud-data:
-  invito-data:

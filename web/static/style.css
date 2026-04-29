@@ -76,10 +76,8 @@ main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 .card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: .75rem; display: flex; align-items: center; justify-content: space-between; transition: border-color var(--transition), box-shadow var(--transition); }
 .card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
 .card-title { font-weight: 600; }
-.card-meta { font-size: .8rem; color: var(--text-muted); margin-top: .2rem; }
-.card-meta + .card-meta { margin-top: .25rem; }
+.card-meta { font-size: .8rem; color: var(--text-muted); margin-top: .25rem; }
 .card-link { display: block; text-decoration: none; color: inherit; }
-.card-link:hover { text-decoration: none; }
 .card-arrow { color: var(--text-muted); transition: transform var(--transition); }
 .card-link:hover .card-arrow { transform: translateX(3px); }
 .card-actions { display: flex; gap: .5rem; flex-shrink: 0; }
@@ -100,7 +98,7 @@ input[type="number"], input[type="time"], input[type="color"], select, textarea 
   border-radius: var(--radius); font-size: .875rem; font-family: inherit;
   background: var(--bg); transition: border-color var(--transition);
 }
-input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); border-color: var(--accent); }
 input:disabled { background: var(--bg-subtle); color: var(--text-muted); cursor: not-allowed; }
 textarea { resize: vertical; min-height: 80px; }
 .form-hint { font-size: .8rem; color: var(--text-muted); margin-top: .25rem; }
@@ -116,7 +114,7 @@ textarea { resize: vertical; min-height: 80px; }
 
 /* Status badges */
 .badge { display: inline-block; padding: .125rem .5rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
-.badge-pending   { background: #fef9c3; color: #854d0e; }
+.badge-pending   { background: var(--warn-bg); color: var(--warn-text); }
 .badge-confirmed { background: #dcfce7; color: #166534; }
 .badge-rejected  { background: #fee2e2; color: #991b1b; }
 .badge-cancelled { background: #f3f4f6; color: #6b7280; }
@@ -169,8 +167,6 @@ textarea { resize: vertical; min-height: 80px; }
 /* Text utilities */
 .text-muted   { color: var(--text-muted); }
 .text-warning { color: var(--warning-text); }
-.text-sm      { font-size: .875rem; }
-.text-xs      { font-size: .8rem; }
 
 /* Color dot */
 .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
