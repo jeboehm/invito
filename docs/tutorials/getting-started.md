@@ -68,13 +68,13 @@ docker run -d \
   --env-file .env \
   -p 8080:8080 \
   -v invito-data:/data \
-  ghcr.io/YOUR_ORG/invito:latest
+  ghcr.io/jeboehm/invito:latest
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/YOUR_ORG/invito.git
+git clone https://github.com/jeboehm/invito.git
 cd invito
 go build -o invito ./cmd/invito
 ./invito

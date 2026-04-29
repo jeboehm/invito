@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/jboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/db"
 )
 
 func StartSyncLoop(ctx context.Context, database *sql.DB, key [32]byte, interval time.Duration) {

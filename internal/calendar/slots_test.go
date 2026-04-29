@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/db"
 )
 
 func TestCalculateSlots_Basic(t *testing.T) {

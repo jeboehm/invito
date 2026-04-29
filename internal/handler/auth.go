@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jboehm/invito/internal/auth"
-	"github.com/jboehm/invito/internal/config"
-	"github.com/jboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/auth"
+	"github.com/jeboehm/invito/internal/config"
+	"github.com/jeboehm/invito/internal/db"
 )
 
 const oidcStateCookie = "invito_oidc_state"

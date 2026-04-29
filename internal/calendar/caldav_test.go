@@ -6,7 +6,7 @@ import (
 	"time"
 
 	ical "github.com/emersion/go-ical"
-	"github.com/jboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/db"
 )
 
 // veventComp builds a minimal VEVENT component with a floating (no Z, no TZID) DTSTART/DTEND.

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jboehm/invito/internal/middleware"
+	"github.com/jeboehm/invito/internal/middleware"
 )
 
 // ok is a trivial handler that writes 200.

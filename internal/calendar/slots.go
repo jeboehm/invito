@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/jboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/db"
 )
 
 type Slot struct {

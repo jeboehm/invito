@@ -9,7 +9,7 @@ import (
 	gooidc "github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 
-	"github.com/jboehm/invito/internal/config"
+	"github.com/jeboehm/invito/internal/config"
 )
 
 type Claims struct {

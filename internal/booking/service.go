@@ -7,9 +7,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/jboehm/invito/internal/calendar"
-	"github.com/jboehm/invito/internal/db"
-	"github.com/jboehm/invito/internal/email"
+	"github.com/jeboehm/invito/internal/calendar"
+	"github.com/jeboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/email"
 )
 
 type Service struct {

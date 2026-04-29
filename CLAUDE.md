@@ -73,14 +73,14 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 Use the Makefile to manage the local dev environment.
 
-| Command | Purpose |
-|---|---|
-| `make up` | Start Docker services (mailpit, nextcloud, dex) + run the Go server |
-| `make down` | Stop all Docker containers |
-| `make build` | Build binary to `bin/invito` |
-| `make test` | Run unit tests |
-| `make e2e` | Run e2e tests (headless) |
-| `make e2e-visible` | Run e2e tests with browser visible |
+| Command            | Purpose                                                             |
+| ------------------ | ------------------------------------------------------------------- |
+| `make up`          | Start Docker services (mailpit, nextcloud, dex) + run the Go server |
+| `make down`        | Stop all Docker containers                                          |
+| `make build`       | Build binary to `bin/invito`                                        |
+| `make test`        | Run unit tests                                                      |
+| `make e2e`         | Run e2e tests (headless)                                            |
+| `make e2e-visible` | Run e2e tests with browser visible                                  |
 
 **Dev credentials:** `admin@example.com` / `password`
 

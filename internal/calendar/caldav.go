@@ -14,8 +14,8 @@ import (
 	"github.com/emersion/go-webdav"
 	"github.com/emersion/go-webdav/caldav"
 
-	"github.com/jboehm/invito/internal/crypto"
-	"github.com/jboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/crypto"
+	"github.com/jeboehm/invito/internal/db"
 )
 
 func VerifyCredentials(ctx context.Context, rawURL, username, password string) error {

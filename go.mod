@@ -1,4 +1,4 @@
-module github.com/jboehm/invito
+module github.com/jeboehm/invito
 
 go 1.26
 

@@ -9,7 +9,7 @@ import (
 	"net/smtp"
 	"net/textproto"
 
-	"github.com/jboehm/invito/internal/config"
+	"github.com/jeboehm/invito/internal/config"
 )
 
 type Mailer struct {

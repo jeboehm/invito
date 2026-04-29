@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/jboehm/invito/internal/db"
-	"github.com/jboehm/invito/internal/middleware"
-	"github.com/jboehm/invito/web"
+	"github.com/jeboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/middleware"
+	"github.com/jeboehm/invito/web"
 )
 
 // Each page template is parsed in its own isolated set so that

@@ -4,32 +4,21 @@
 #   dex       OIDC provider      → http://localhost:5556
 #   nextcloud CalDAV server      → http://localhost:8081
 #   mailpit   SMTP catch-all     → http://localhost:8025  (web UI)
-#   invito    the app itself     → http://localhost:8080
 #
 # Quick start (macOS + Docker Desktop — no extra setup needed):
 #
-#   docker compose up
+#   make up
 #
 #   Then open http://localhost:8080 and sign in with:
-#     dev@example.com / password
+#     admin@example.com / password
 #
 #   Add a CalDAV calendar in the dashboard:
-#     URL:      http://nextcloud/remote.php/dav/
+#     URL:      http://localhost:8081/remote.php/dav/principals/users/admin
 #     User:     admin
 #     Password: admin
 #
 #   All outgoing mail is caught by Mailpit at http://localhost:8025.
-#
-# Linux (Docker Engine without Docker Desktop):
-#   Add to /etc/hosts:  127.0.0.1  host.docker.internal
-#   Then run normally.
-#
-# Running Invito locally instead of in Docker:
-#   docker compose up dex nextcloud mailpit
-#   source dev/local.env && go run ./cmd/invito
-
 name: invito-dev
-
 services:
   # ── Dex ─────────────────────────────────────────────────────────────────────
   dex:
@@ -48,7 +37,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-
   # ── Nextcloud ────────────────────────────────────────────────────────────────
   nextcloud:
     image: nextcloud:30-apache
@@ -69,7 +57,6 @@ services:
       timeout: 5s
       retries: 20
       start_period: 60s # Nextcloud takes a while on first run
-
   # ── Mailpit (SMTP catch-all) ─────────────────────────────────────────────────
   mailpit:
     image: axllent/mailpit:latest
@@ -79,10 +66,8 @@ services:
     networks:
       - invito
     restart: unless-stopped
-
 networks:
   invito:
-
 volumes:
   dex-data:
   nextcloud-data:

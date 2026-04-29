@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/jboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/db"
 )
 
 type contextKey struct{}

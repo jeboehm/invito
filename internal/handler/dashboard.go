@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jboehm/invito/internal/auth"
-	"github.com/jboehm/invito/internal/calendar"
-	"github.com/jboehm/invito/internal/config"
-	"github.com/jboehm/invito/internal/crypto"
-	"github.com/jboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/auth"
+	"github.com/jeboehm/invito/internal/calendar"
+	"github.com/jeboehm/invito/internal/config"
+	"github.com/jeboehm/invito/internal/crypto"
+	"github.com/jeboehm/invito/internal/db"
 )
 
 const syncWindowDays = 60

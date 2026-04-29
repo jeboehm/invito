@@ -35,13 +35,13 @@ docker run -d \
   -e INVITO_SMTP_FROM=invito@example.com \
   -e INVITO_SESSION_SECRET=replace-with-32-byte-hex \
   -v invito-data:/data \
-  ghcr.io/YOUR_ORG/invito:latest
+  ghcr.io/jeboehm/invito:latest
 ```
 
 ### Build from source
 
 ```bash
-git clone https://github.com/YOUR_ORG/invito.git
+git clone https://github.com/jeboehm/invito.git
 cd invito
 go build -o invito ./cmd/invito
 INVITO_BASE_URL=http://localhost:8080 ./invito

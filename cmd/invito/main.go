@@ -10,15 +10,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jboehm/invito/internal/auth"
-	"github.com/jboehm/invito/internal/booking"
-	"github.com/jboehm/invito/internal/calendar"
-	"github.com/jboehm/invito/internal/config"
-	"github.com/jboehm/invito/internal/db"
-	"github.com/jboehm/invito/internal/email"
-	"github.com/jboehm/invito/internal/handler"
-	"github.com/jboehm/invito/internal/middleware"
-	"github.com/jboehm/invito/web"
+	"github.com/jeboehm/invito/internal/auth"
+	"github.com/jeboehm/invito/internal/booking"
+	"github.com/jeboehm/invito/internal/calendar"
+	"github.com/jeboehm/invito/internal/config"
+	"github.com/jeboehm/invito/internal/db"
+	"github.com/jeboehm/invito/internal/email"
+	"github.com/jeboehm/invito/internal/handler"
+	"github.com/jeboehm/invito/internal/middleware"
+	"github.com/jeboehm/invito/web"
 )
 
 func main() {
