@@ -15,7 +15,7 @@
 {{end}}
 
 {{if .Calendars}}
-<div style="margin-bottom:2rem">
+<div class="card-list">
   {{range .Calendars}}
   <div class="card" id="calendar-{{.ID}}">
     <div>
@@ -27,7 +27,7 @@
         · {{.EventCount}} event{{if ne .EventCount 1}}s{{end}} synced
       </div>
     </div>
-    <div style="display:flex;gap:.5rem">
+    <div class="card-actions">
       <form method="post" action="/dashboard/calendars/{{.ID}}/sync">
         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
         <button type="submit" class="btn">Sync now</button>
@@ -45,28 +45,28 @@
 {{end}}
 
 <details>
-  <summary style="cursor:pointer;font-weight:600;margin-bottom:1rem">Add CalDAV calendar</summary>
-  <form method="post" action="/dashboard/calendars" style="max-width:500px;margin-top:1rem">
+  <summary>Add CalDAV calendar</summary>
+  <form method="post" action="/dashboard/calendars" class="content-form detail-body">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <div class="form-group">
-      <label>CalDAV URL</label>
-      <input type="url" name="caldav_url" required placeholder="https://cloud.example.com/remote.php/dav/calendars/user/">
+      <label for="caldav_url">CalDAV URL</label>
+      <input type="url" id="caldav_url" name="caldav_url" required placeholder="https://cloud.example.com/remote.php/dav/calendars/user/">
     </div>
     <div class="form-group">
-      <label>Username</label>
-      <input type="text" name="username" required>
+      <label for="cal_username">Username</label>
+      <input type="text" id="cal_username" name="username" required>
     </div>
     <div class="form-group">
-      <label>Password</label>
-      <input type="password" name="password" required>
+      <label for="cal_password">Password</label>
+      <input type="password" id="cal_password" name="password" required>
     </div>
     <div class="form-group">
-      <label>Display Name</label>
-      <input type="text" name="display_name" required placeholder="Work Calendar">
+      <label for="display_name">Display Name</label>
+      <input type="text" id="display_name" name="display_name" required placeholder="Work Calendar">
     </div>
     <div class="form-group">
-      <label>Color</label>
-      <input type="color" name="color" value="#6366f1">
+      <label for="cal_color">Color</label>
+      <input type="color" id="cal_color" name="color" value="#6366f1">
     </div>
     <button type="submit" class="btn btn-primary">Add Calendar</button>
   </form>

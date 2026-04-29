@@ -38,7 +38,7 @@ func (h *DashboardHandler) HandleIndex(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	count, _ := db.CountPendingForUser(h.db, user.ID)
 	upcoming, _ := db.ListUpcomingConfirmedForUser(h.db, user.ID, 5)
-	render(w, "dashboard/index.html", dashboardData{base(r, user), count, upcoming})
+	render(w, "dashboard/index.html", dashboardData{baseDash(r, user, "overview"), count, upcoming})
 }
 
 // --- Profile ---
@@ -51,7 +51,7 @@ type profileData struct {
 
 func (h *DashboardHandler) HandleProfileGet(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
-	render(w, "dashboard/profile.html", profileData{base(r, user), h.cfg.BaseURL, ""})
+	render(w, "dashboard/profile.html", profileData{baseDash(r, user, "profile"), h.cfg.BaseURL, ""})
 }
 
 func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +65,7 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 	username := slugify(r.FormValue("username"))
 
 	showError := func(msg string) {
-		render(w, "dashboard/profile.html", profileData{base(r, user), h.cfg.BaseURL, msg})
+		render(w, "dashboard/profile.html", profileData{baseDash(r, user, "profile"), h.cfg.BaseURL, msg})
 	}
 
 	if name == "" {
@@ -104,7 +104,7 @@ type calendarsData struct {
 func (h *DashboardHandler) HandleCalendarsGet(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	cals, _ := db.ListCalendarsWithEventCounts(h.db, user.ID)
-	render(w, "dashboard/calendars.html", calendarsData{base(r, user), cals, ""})
+	render(w, "dashboard/calendars.html", calendarsData{baseDash(r, user, "calendars"), cals, ""})
 }
 
 func (h *DashboardHandler) HandleCalendarsPost(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +122,7 @@ func (h *DashboardHandler) HandleCalendarsPost(w http.ResponseWriter, r *http.Re
 
 	showError := func(msg string) {
 		cals, _ := db.ListCalendarsWithEventCounts(h.db, user.ID)
-		render(w, "dashboard/calendars.html", calendarsData{base(r, user), cals, msg})
+		render(w, "dashboard/calendars.html", calendarsData{baseDash(r, user, "calendars"), cals, msg})
 	}
 
 	if err := calendar.VerifyCredentials(r.Context(), calURL, calUser, calPass); err != nil {
@@ -195,7 +195,7 @@ func (h *DashboardHandler) HandleCalendarSync(w http.ResponseWriter, r *http.Req
 
 type availabilityData struct {
 	baseData
-	Rules   []db.AvailabilityRule
+	Rules    []db.AvailabilityRule
 	Weekdays []string
 }
 
@@ -217,7 +217,7 @@ func (h *DashboardHandler) HandleAvailabilityGet(w http.ResponseWriter, r *http.
 			full[i] = db.AvailabilityRule{Weekday: i, StartTime: "09:00", EndTime: "17:00"}
 		}
 	}
-	render(w, "dashboard/availability.html", availabilityData{base(r, user), full, weekdayNames})
+	render(w, "dashboard/availability.html", availabilityData{baseDash(r, user, "availability"), full, weekdayNames})
 }
 
 func (h *DashboardHandler) HandleAvailabilityPost(w http.ResponseWriter, r *http.Request) {
@@ -262,7 +262,7 @@ type eventTypesData struct {
 func (h *DashboardHandler) HandleEventTypesGet(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	ets, _ := db.ListEventTypes(h.db, user.ID)
-	render(w, "dashboard/event-types.html", eventTypesData{base(r, user), ets, h.cfg.BaseURL, ""})
+	render(w, "dashboard/event-types.html", eventTypesData{baseDash(r, user, "event-types"), ets, h.cfg.BaseURL, ""})
 }
 
 func (h *DashboardHandler) HandleEventTypesPost(w http.ResponseWriter, r *http.Request) {
@@ -284,7 +284,7 @@ func (h *DashboardHandler) HandleEventTypesPost(w http.ResponseWriter, r *http.R
 
 	showError := func(msg string) {
 		ets, _ := db.ListEventTypes(h.db, user.ID)
-		render(w, "dashboard/event-types.html", eventTypesData{base(r, user), ets, h.cfg.BaseURL, msg})
+		render(w, "dashboard/event-types.html", eventTypesData{baseDash(r, user, "event-types"), ets, h.cfg.BaseURL, msg})
 	}
 
 	if slug == "" || title == "" || duration <= 0 {
@@ -293,13 +293,13 @@ func (h *DashboardHandler) HandleEventTypesPost(w http.ResponseWriter, r *http.R
 	}
 
 	_, err = db.CreateEventType(h.db, &db.EventType{
-		UserID:             user.ID,
-		Slug:               slug,
-		Title:              title,
-		Description:        description,
-		DurationMinutes:    duration,
-		Color:              color,
-		BookingWindowDays:  bookingWindow,
+		UserID:            user.ID,
+		Slug:              slug,
+		Title:             title,
+		Description:       description,
+		DurationMinutes:   duration,
+		Color:             color,
+		BookingWindowDays: bookingWindow,
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE") {
@@ -329,7 +329,7 @@ func (h *DashboardHandler) HandleEventTypeEditGet(w http.ResponseWriter, r *http
 		baseData
 		EventType *db.EventType
 		Error     string
-	}{base(r, user), et, ""})
+	}{baseDash(r, user, "event-types"), et, ""})
 }
 
 func (h *DashboardHandler) HandleEventTypePost(w http.ResponseWriter, r *http.Request) {
@@ -363,7 +363,7 @@ func (h *DashboardHandler) HandleEventTypePost(w http.ResponseWriter, r *http.Re
 			baseData
 			EventType *db.EventType
 			Error     string
-		}{base(r, user), et, "Could not update event type"})
+		}{baseDash(r, user, "event-types"), et, "Could not update event type"})
 		return
 	}
 
@@ -395,7 +395,7 @@ func (h *DashboardHandler) HandleBookingsGet(w http.ResponseWriter, r *http.Requ
 	status := r.URL.Query().Get("status")
 	bookings, _ := db.ListBookingsForUser(h.db, user.ID, status, 100)
 	render(w, "dashboard/bookings.html", bookingsData{
-		base(r, user),
+		baseDash(r, user, "bookings"),
 		bookings,
 		status,
 		[]string{"", "PENDING", "CONFIRMED", "REJECTED", "CANCELLED"},

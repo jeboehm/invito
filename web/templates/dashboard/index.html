@@ -11,13 +11,13 @@
 </div>
 
 {{if gt .PendingCount 0}}
-<div class="alert" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a">
+<div class="alert alert-warning">
   You have <strong>{{.PendingCount}}</strong> pending booking request{{if gt .PendingCount 1}}s{{end}}.
   <a href="/dashboard/bookings?status=PENDING">Review now →</a>
 </div>
 {{end}}
 
-<h2 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem">Upcoming confirmed bookings</h2>
+<h2 class="section-heading">Upcoming confirmed bookings</h2>
 {{if .Upcoming}}
 <table>
   <thead><tr><th>Date & Time</th><th>Guest</th><th>Event Type</th></tr></thead>
@@ -25,24 +25,24 @@
   {{range .Upcoming}}
   <tr>
     <td>{{.StartAt.Format "Mon Jan 2, 2006 15:04"}}</td>
-    <td>{{.GuestName}}<br><small style="color:#6b7280">{{.GuestEmail}}</small></td>
+    <td>{{.GuestName}}<br><small class="text-muted">{{.GuestEmail}}</small></td>
     <td>{{.EventType.Title}}</td>
   </tr>
   {{end}}
   </tbody>
 </table>
 {{else}}
-<p style="color:#6b7280">No upcoming bookings.</p>
+<p class="text-muted">No upcoming bookings.</p>
 {{end}}
 {{end}}
 
 {{define "dash-nav"}}
 <nav class="dash-nav">
-  <a href="/dashboard">Overview</a>
-  <a href="/dashboard/calendars">Calendars</a>
-  <a href="/dashboard/availability">Availability</a>
-  <a href="/dashboard/event-types">Event Types</a>
-  <a href="/dashboard/bookings">Bookings</a>
-  <a href="/dashboard/profile">Profile</a>
+  <a href="/dashboard"              class="{{if eq .NavActive "overview"}}active{{end}}">Overview</a>
+  <a href="/dashboard/calendars"    class="{{if eq .NavActive "calendars"}}active{{end}}">Calendars</a>
+  <a href="/dashboard/availability" class="{{if eq .NavActive "availability"}}active{{end}}">Availability</a>
+  <a href="/dashboard/event-types"  class="{{if eq .NavActive "event-types"}}active{{end}}">Event Types</a>
+  <a href="/dashboard/bookings"     class="{{if eq .NavActive "bookings"}}active{{end}}">Bookings</a>
+  <a href="/dashboard/profile"      class="{{if eq .NavActive "profile"}}active{{end}}">Profile</a>
 </nav>
 {{end}}

@@ -10,7 +10,7 @@
   <h1>Weekly Availability</h1>
 </div>
 
-<form method="post" action="/dashboard/availability" style="max-width:600px">
+<form method="post" action="/dashboard/availability" class="content-narrow">
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
   <table class="avail-table">
     <thead>
@@ -25,14 +25,14 @@
     {{range $i, $rule := .Rules}}
     <tr>
       <td><strong>{{index $.Weekdays $i}}</strong></td>
-      <td><input type="checkbox" name="day_{{$i}}_active"{{if $rule.Active}} checked{{end}}></td>
-      <td><input type="time" name="day_{{$i}}_start" value="{{$rule.StartTime}}"></td>
-      <td><input type="time" name="day_{{$i}}_end" value="{{$rule.EndTime}}"></td>
+      <td><input type="checkbox" name="day_{{$i}}_active" aria-label="{{index $.Weekdays $i}} active"{{if $rule.Active}} checked{{end}}></td>
+      <td><input type="time" name="day_{{$i}}_start" value="{{$rule.StartTime}}" aria-label="{{index $.Weekdays $i}} start time"></td>
+      <td><input type="time" name="day_{{$i}}_end" value="{{$rule.EndTime}}" aria-label="{{index $.Weekdays $i}} end time"></td>
     </tr>
     {{end}}
     </tbody>
   </table>
-  <div style="margin-top:1.5rem">
+  <div class="form-actions">
     <button type="submit" class="btn btn-primary">Save availability</button>
   </div>
 </form>

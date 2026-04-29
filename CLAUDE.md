@@ -68,3 +68,20 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+## Dev Environment
+
+Use the Makefile to manage the local dev environment.
+
+| Command | Purpose |
+|---|---|
+| `make up` | Start Docker services (mailpit, nextcloud, dex) + run the Go server |
+| `make down` | Stop all Docker containers |
+| `make build` | Build binary to `bin/invito` |
+| `make test` | Run unit tests |
+| `make e2e` | Run e2e tests (headless) |
+| `make e2e-visible` | Run e2e tests with browser visible |
+
+**Dev credentials:** `admin@example.com` / `password`
+
+> Do not run `go run ./cmd/invito` directly — it requires the Docker services started by `make up`.

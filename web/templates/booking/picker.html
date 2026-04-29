@@ -5,11 +5,11 @@
 {{define "title"}}{{.EventType.Title}} with {{.User.Name}} — Invito{{end}}
 
 {{define "content"}}
-<div style="max-width:600px;margin:0 auto">
-  <div style="margin-bottom:1.5rem">
-    <a href="/calendar/{{.User.Username}}/" style="color:#6b7280;font-size:.875rem">← {{.User.Name}}</a>
-    <h1 style="margin-top:.5rem">{{.EventType.Title}}</h1>
-    <p style="color:#6b7280">{{.EventType.DurationMinutes}} min{{if .EventType.Description}} · {{.EventType.Description}}{{end}}</p>
+<div class="content-narrow">
+  <div class="picker-header">
+    <a href="/calendar/{{.User.Username}}/" class="back-link">← {{.User.Name}}</a>
+    <h1>{{.EventType.Title}}</h1>
+    <p class="text-muted">{{.EventType.DurationMinutes}} min{{if .EventType.Description}} · {{.EventType.Description}}{{end}}</p>
   </div>
 
   <div class="date-nav">
@@ -20,8 +20,8 @@
        hx-target="#slots"
        hx-push-url="true"
        onclick="document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">
-      <div style="font-weight:600">{{.Format "Mon"}}</div>
-      <div style="font-size:.8rem">{{.Format "Jan 2"}}</div>
+      <div class="date-btn-day">{{.Format "Mon"}}</div>
+      <div class="date-btn-date">{{.Format "Jan 2"}}</div>
     </a>
     {{end}}
   </div>

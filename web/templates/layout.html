@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{block "title" .}}Invito{{end}}</title>
+<link rel="icon" href="data:,">
 <link rel="stylesheet" href="/static/style.css">
 <script src="/static/htmx.min.js" defer></script>
 </head>
@@ -14,7 +15,7 @@
   <nav>
     {{if .User}}
       <a href="/dashboard">Dashboard</a>
-      <form method="post" action="/auth/logout" style="display:inline">
+      <form method="post" action="/auth/logout" class="form-inline">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <button type="submit" class="btn-link">Sign out</button>
       </form>

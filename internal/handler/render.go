@@ -49,10 +49,17 @@ type baseData struct {
 	User      *db.User
 	CSRFToken string
 	HideNav   bool
+	NavActive string
 }
 
 func base(r *http.Request, user *db.User) baseData {
 	return baseData{User: user, CSRFToken: middleware.CSRFToken(r)}
+}
+
+func baseDash(r *http.Request, user *db.User, nav string) baseData {
+	b := base(r, user)
+	b.NavActive = nav
+	return b
 }
 
 func baseNoNav(r *http.Request) baseData {

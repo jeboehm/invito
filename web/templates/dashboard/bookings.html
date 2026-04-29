@@ -10,7 +10,7 @@
   <h1>Bookings</h1>
 </div>
 
-<div style="display:flex;gap:.5rem;margin-bottom:1.5rem">
+<div class="action-row filter-row">
   {{range .StatusOptions}}
   <a href="/dashboard/bookings{{if .}}?status={{.}}{{end}}"
      class="btn{{if eq . $.StatusFilter}} btn-primary{{end}}">
@@ -34,14 +34,14 @@
   {{range .Bookings}}
   <tr>
     <td>{{.StartAt.Format "Jan 2, 2006 15:04"}}</td>
-    <td>{{.GuestName}}<br><small style="color:#6b7280">{{.GuestEmail}}</small></td>
+    <td>{{.GuestName}}<br><small class="text-muted">{{.GuestEmail}}</small></td>
     <td>{{.EventType.Title}}</td>
     <td><span class="badge badge-{{.Status | lower}}">{{.Status}}</span></td>
     <td>
       {{if eq .Status "PENDING"}}
-      <div style="display:flex;gap:.4rem">
-        <a href="/booking/{{.Token}}/confirm" class="btn btn-primary" style="font-size:.8rem;padding:.2rem .6rem">Confirm</a>
-        <a href="/booking/{{.Token}}/reject" class="btn btn-danger" style="font-size:.8rem;padding:.2rem .6rem">Reject</a>
+      <div class="action-row">
+        <a href="/booking/{{.Token}}/confirm" class="btn btn-primary btn-sm">Confirm</a>
+        <a href="/booking/{{.Token}}/reject" class="btn btn-danger btn-sm">Reject</a>
       </div>
       {{end}}
     </td>
@@ -50,6 +50,6 @@
   </tbody>
 </table>
 {{else}}
-<p style="color:#6b7280">No bookings found.</p>
+<p class="text-muted">No bookings found.</p>
 {{end}}
 {{end}}
