@@ -3,64 +3,55 @@
 package e2e_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
-	"time"
 
-	"github.com/chromedp/chromedp"
+	playwright "github.com/playwright-community/playwright-go"
 )
 
-// waitForFormSubmit clicks a form submit button and waits for the resulting
-// POST→redirect→GET sequence to complete. Use this instead of Click+WaitVisible
-// when the same page is shown before and after the form submit (same element visible
-// throughout), which would cause WaitVisible to return before the POST completes.
-func waitForFormSubmit(ctx context.Context, submitSelector string) error {
-	// Inject a reload marker; a new page load removes it.
-	if err := chromedp.Run(ctx,
-		chromedp.Evaluate(`document.body.dataset.reloadPending = '1'`, nil),
-		chromedp.Click(submitSelector, chromedp.ByQuery),
-	); err != nil {
-		return err
+// newPage creates an isolated browser context per test so cookies and storage
+// never leak between tests.
+func newPage(t *testing.T) playwright.Page {
+	t.Helper()
+	bctx, err := browser.NewContext()
+	if err != nil {
+		t.Fatalf("new browser context: %v", err)
 	}
-	// Poll until the marker is gone (page has been replaced by the redirect GET).
-	// Evaluation errors during the navigation (context destroyed, ERR_ABORTED)
-	// are transient — swallow them and keep polling.
-	deadline := time.Now().Add(10 * time.Second)
-	for time.Now().Before(deadline) {
-		var present bool
-		if err := chromedp.Run(ctx,
-			chromedp.Evaluate(`document.body.dataset.reloadPending === '1'`, &present),
-		); err == nil && !present {
-			return nil
-		}
-		time.Sleep(50 * time.Millisecond)
+	t.Cleanup(func() { bctx.Close() })
+	page, err := bctx.NewPage()
+	if err != nil {
+		t.Fatalf("new page: %v", err)
 	}
-	return fmt.Errorf("form submit: page did not reload within 10s")
+	return page
 }
 
-// mustLogin starts a new Chrome context, performs the OIDC login flow with the
-// dev Dex credentials, and returns the logged-in context. The caller must call
-// cancel when done.
-func mustLogin(t *testing.T) (context.Context, context.CancelFunc) {
+// waitForFormSubmit clicks a submit button and waits for the POST→redirect→GET
+// sequence. ExpectNavigation sets up the listener before the click so fast
+// local redirects can't race past the wait.
+func waitForFormSubmit(page playwright.Page, submitSelector string) error {
+	_, err := page.ExpectNavigation(func() error {
+		return page.Click(submitSelector)
+	})
+	return err
+}
+
+// mustLogin performs the OIDC login flow and returns a page already on /dashboard.
+func mustLogin(t *testing.T) playwright.Page {
 	t.Helper()
-
-	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(t.Logf))
-
-	// Use ctx directly for login — creating a derived context and cancelling it
-	// before returning disrupts chromedp's internal CDP state and makes the
-	// returned ctx unusable.
-	if err := chromedp.Run(ctx,
-		chromedp.Navigate(serverURL+"/auth/login"),
-		chromedp.WaitVisible(`#login`, chromedp.ByQuery),
-		chromedp.SetValue(`#login`, "admin@example.com", chromedp.ByQuery),
-		chromedp.SetValue(`#password`, "password", chromedp.ByQuery),
-		chromedp.Click(`#submit-login`, chromedp.ByQuery),
-		waitForURLContains("/dashboard", 15*time.Second),
-	); err != nil {
-		cancel()
-		t.Fatalf("mustLogin: %v", err)
+	page := newPage(t)
+	if _, err := page.Goto(serverURL + "/auth/login"); err != nil {
+		t.Fatalf("navigate to login: %v", err)
 	}
-
-	return ctx, cancel
+	if err := page.Fill("#login", "admin@example.com"); err != nil {
+		t.Fatalf("fill email: %v", err)
+	}
+	if err := page.Fill("#password", "password"); err != nil {
+		t.Fatalf("fill password: %v", err)
+	}
+	if err := page.Click("#submit-login"); err != nil {
+		t.Fatalf("click submit: %v", err)
+	}
+	if err := page.WaitForURL("**/dashboard**"); err != nil {
+		t.Fatalf("wait for dashboard: %v", err)
+	}
+	return page
 }
