@@ -249,6 +249,7 @@ func (h *PublicHandler) calculateSlots(user *db.User, et *db.EventType, date tim
 		time.Duration(et.DurationMinutes)*time.Minute,
 		time.Local,
 		et.BookingWindowDays,
+		now,
 	)
 }
 
