@@ -8,12 +8,9 @@
 //
 // The tests start an Invito server on :8080 (matching Dex's allowed redirect URI).
 // Do not run with `docker compose up invito` — port 8080 must be free.
-//
-// Override Chrome path via CHROME_PATH env var if needed.
 package e2e_test
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -22,16 +19,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chromedp/chromedp"
+	playwright "github.com/playwright-community/playwright-go"
 )
 
 // serverURL is the base URL of the test Invito instance.
 // Must match the redirect URI registered in dev/dex/config.yaml.
 const serverURL = "http://localhost:8080"
 
-// allocCtx is the Chrome allocator context shared across all tests.
-// Initialized in TestMain, valid for the duration of the test run.
-var allocCtx context.Context
+// pw and browser are shared across all tests, initialized in TestMain.
+var (
+	pw      *playwright.Playwright
+	browser playwright.Browser
+)
 
 func TestMain(m *testing.M) {
 	os.Exit(testMain(m))
@@ -103,24 +102,36 @@ func testMain(m *testing.M) int {
 
 	fmt.Println("e2e: waiting for server to be ready…")
 	if !waitReady(serverURL+"/", 15*time.Second) {
-		fmt.Fprintln(os.Stderr, "e2e: server did not become ready within 60s")
+		fmt.Fprintln(os.Stderr, "e2e: server did not become ready within 15s")
 		return 1
 	}
 	fmt.Println("e2e: server ready")
 
-	chromePath := os.Getenv("CHROME_PATH")
-	if chromePath == "" {
-		chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+	// Install playwright browsers if not already present. Idempotent — fast when cached.
+	fmt.Println("e2e: ensuring playwright browsers are installed…")
+	if err := playwright.Install(&playwright.RunOptions{
+		Browsers: []string{"chromium"},
+		Verbose:  false,
+	}); err != nil {
+		fmt.Fprintln(os.Stderr, "playwright install:", err)
+		return 1
 	}
-	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.ExecPath(chromePath),
-	)
-	if os.Getenv("CHROME_HEADLESS") == "0" {
-		opts = append(opts, chromedp.Flag("headless", false))
+
+	pw, err = playwright.Run()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "playwright run:", err)
+		return 1
 	}
-	var allocCancel context.CancelFunc
-	allocCtx, allocCancel = chromedp.NewExecAllocator(context.Background(), opts...)
-	defer allocCancel()
+	defer pw.Stop() //nolint:errcheck
+
+	browser, err = pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+		Headless: playwright.Bool(os.Getenv("CHROME_HEADLESS") != "0"),
+	})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "launch browser:", err)
+		return 1
+	}
+	defer browser.Close()
 
 	return m.Run()
 }

@@ -16,6 +16,8 @@ jobs:
           go-version: '1.26'
       - name: Build
         run: make build
+      - name: Install Playwright browsers
+        run: go run github.com/playwright-community/playwright-go/cmd/playwright install chromium --with-deps
       - name: Test
         run: |
           docker compose up -d mailpit nextcloud dex
