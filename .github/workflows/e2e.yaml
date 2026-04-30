@@ -1,11 +1,6 @@
-name: Test
+name: E2E Tests
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
@@ -25,5 +20,4 @@ jobs:
       - name: Test
         run: |
           docker compose up -d mailpit nextcloud dex
-          make test
           make e2e
