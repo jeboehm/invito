@@ -41,17 +41,20 @@ func (h *DashboardHandler) HandleIndex(w http.ResponseWriter, r *http.Request) {
 	render(w, "dashboard/index.html", dashboardData{baseDash(r, user, "overview"), count, upcoming})
 }
 
+//go:generate go run gen_timezones.go
+
 // --- Profile ---
 
 type profileData struct {
 	baseData
-	BaseURL string
-	Error   string
+	BaseURL   string
+	Timezones []string
+	Error     string
 }
 
 func (h *DashboardHandler) HandleProfileGet(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
-	render(w, "dashboard/profile.html", profileData{baseDash(r, user, "profile"), h.cfg.BaseURL, ""})
+	render(w, "dashboard/profile.html", profileData{baseDash(r, user, "profile"), h.cfg.BaseURL, allTimezones, ""})
 }
 
 func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Request) {
@@ -63,9 +66,13 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 
 	name := strings.TrimSpace(singleLine(r.FormValue("name")))
 	username := slugify(r.FormValue("username"))
+	timezone := r.FormValue("timezone")
+	if timezone == "" {
+		timezone = "UTC"
+	}
 
 	showError := func(msg string) {
-		render(w, "dashboard/profile.html", profileData{baseDash(r, user, "profile"), h.cfg.BaseURL, msg})
+		render(w, "dashboard/profile.html", profileData{baseDash(r, user, "profile"), h.cfg.BaseURL, allTimezones, msg})
 	}
 
 	if name == "" {
@@ -74,6 +81,10 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 	}
 	if username == "" {
 		showError("Username slug cannot be empty")
+		return
+	}
+	if _, err := time.LoadLocation(timezone); err != nil {
+		showError("Invalid timezone")
 		return
 	}
 
@@ -85,7 +96,7 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	if err := db.UpdateUserProfile(h.db, user.ID, name, username); err != nil {
+	if err := db.UpdateUserProfile(h.db, user.ID, name, username, timezone); err != nil {
 		showError("Could not save profile")
 		return
 	}

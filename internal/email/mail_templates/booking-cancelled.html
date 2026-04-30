@@ -1,6 +1,6 @@
 {{define "booking-cancelled.html"}}<!DOCTYPE html>
 <html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:2rem">
 <h2>Booking request expired</h2>
-<p>Your booking request for <strong>{{.EventTitle}}</strong> on {{.StartAt.Format "Monday, January 2, 2006"}} has expired because it was not confirmed within 24 hours.</p>
+<p>Your booking request for <strong>{{.EventTitle}}</strong> on {{inTZ .StartAt .HostLocation}} ({{.HostLocation.String}}) has expired because it was not confirmed within 24 hours.</p>
 <p>You are welcome to submit a new booking request.</p>
 </body></html>{{end}}

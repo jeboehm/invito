@@ -33,7 +33,7 @@
   <tbody>
   {{range .Bookings}}
   <tr>
-    <td>{{.StartAt.Format "Jan 2, 2006 15:04"}}</td>
+    <td>{{inTZ .StartAt $.User.Location}}</td>
     <td>{{.GuestName}}<br><small class="text-muted">{{.GuestEmail}}</small></td>
     <td>{{.EventType.Title}}</td>
     <td><span class="badge badge-{{.Status | lower}}">{{.Status}}</span></td>

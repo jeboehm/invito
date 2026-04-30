@@ -4,7 +4,7 @@
 <p>Your booking has been confirmed.</p>
 <table style="border-collapse:collapse">
 <tr><td style="padding:.25rem .75rem .25rem 0;color:#6b7280">Event</td><td><strong>{{.EventTitle}}</strong></td></tr>
-<tr><td style="padding:.25rem .75rem .25rem 0;color:#6b7280">Date & Time</td><td>{{.StartAt.Format "Monday, January 2, 2006 at 15:04 UTC"}}</td></tr>
+<tr><td style="padding:.25rem .75rem .25rem 0;color:#6b7280">Date & Time</td><td>{{inTZ .StartAt .HostLocation}} ({{.HostLocation.String}})</td></tr>
 <tr><td style="padding:.25rem .75rem .25rem 0;color:#6b7280">Host</td><td>{{.HostName}}</td></tr>
 </table>
 {{if .GuestMessage}}<p style="margin-top:1.5rem;padding:1rem;background:#f9fafb;border-left:3px solid #6366f1"><strong>Note from host:</strong><br>{{.GuestMessage}}</p>{{end}}

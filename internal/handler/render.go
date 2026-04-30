@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/jeboehm/invito/internal/db"
 	"github.com/jeboehm/invito/internal/middleware"
@@ -38,6 +39,24 @@ func init() {
 	}
 	funcs := template.FuncMap{
 		"lower": strings.ToLower,
+		"inTZ": func(t any, loc *time.Location) string {
+			if loc == nil {
+				loc = time.UTC
+			}
+			var tv time.Time
+			switch v := t.(type) {
+			case time.Time:
+				tv = v
+			case *time.Time:
+				if v == nil {
+					return ""
+				}
+				tv = *v
+			default:
+				return ""
+			}
+			return tv.In(loc).Format("Mon Jan 2, 2006 15:04")
+		},
 	}
 	templates = make(map[string]*template.Template, len(templateDeps))
 	for name, deps := range templateDeps {

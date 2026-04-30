@@ -2,7 +2,7 @@ New booking request: {{.EventTitle}} with {{.GuestName}}
 
 {{.GuestName}} ({{.GuestEmail}}) wants to book {{.EventTitle}}.
 
-Date & Time: {{.StartAt.Format "Monday, January 2, 2006 at 15:04 UTC"}}
+Date & Time: {{inTZ .StartAt .HostLocation}} ({{.HostLocation.String}})
 {{if .GuestNote}}
 Note from guest:
 {{.GuestNote}}

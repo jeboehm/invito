@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/jeboehm/invito/internal/auth"
 	"github.com/jeboehm/invito/internal/booking"
