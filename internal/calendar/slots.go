@@ -22,8 +22,8 @@ func CalculateSlots(
 	duration time.Duration,
 	loc *time.Location,
 	bookingWindowDays int,
+	now time.Time,
 ) []Slot {
-	now := time.Now()
 	windowEnd := now.Add(time.Duration(bookingWindowDays) * 24 * time.Hour)
 
 	// Find rules matching the weekday of date
