@@ -23,7 +23,7 @@
       <span class="card-title"> {{.DisplayName}}</span>
       <div class="card-meta">
         {{.CalDAVURL}}
-        {{if .LastSynced}} · Last synced: {{.LastSynced.Format "Jan 2, 15:04"}}{{else}} · Never synced{{end}}
+        {{if .LastSynced}} · Last synced: {{inTZ .LastSynced $.User.Location}}{{else}} · Never synced{{end}}
         · {{.EventCount}} event{{if ne .EventCount 1}}s{{end}} synced
       </div>
     </div>

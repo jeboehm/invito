@@ -29,14 +29,15 @@ func (s *Service) CreateBooking(ctx context.Context, b *db.Booking, eventType *d
 	}
 
 	text, html, err := email.RenderBookingCreated(email.BookingEmailData{
-		GuestName:  b.GuestName,
-		GuestEmail: b.GuestEmail,
-		GuestNote:  b.GuestNote,
-		HostName:   user.Name,
-		EventTitle: eventType.Title,
-		StartAt:    b.StartAt,
-		ConfirmURL: fmt.Sprintf("%s/booking/%s/confirm", s.baseURL, b.Token),
-		RejectURL:  fmt.Sprintf("%s/booking/%s/reject", s.baseURL, b.Token),
+		GuestName:    b.GuestName,
+		GuestEmail:   b.GuestEmail,
+		GuestNote:    b.GuestNote,
+		HostName:     user.Name,
+		EventTitle:   eventType.Title,
+		StartAt:      b.StartAt,
+		HostLocation: user.Location(),
+		ConfirmURL:   fmt.Sprintf("%s/booking/%s/confirm", s.baseURL, b.Token),
+		RejectURL:    fmt.Sprintf("%s/booking/%s/reject", s.baseURL, b.Token),
 	})
 	if err != nil {
 		log.Printf("render booking-created email: %v", err)
@@ -84,6 +85,7 @@ func (s *Service) ConfirmBooking(ctx context.Context, token string) (*db.Booking
 	}()
 
 	// Send emails
+	hostLoc := user.Location()
 	data := email.BookingEmailData{
 		GuestName:    b.GuestName,
 		GuestEmail:   b.GuestEmail,
@@ -91,9 +93,11 @@ func (s *Service) ConfirmBooking(ctx context.Context, token string) (*db.Booking
 		EventTitle:   et.Title,
 		GuestMessage: et.ConfirmedMessage,
 		StartAt:      b.StartAt,
+		HostLocation: hostLoc,
 	}
 
-	subject := fmt.Sprintf("Confirmed: %s on %s", et.Title, b.StartAt.Format("January 2, 2006"))
+	subject := fmt.Sprintf("Confirmed: %s on %s", et.Title,
+		b.StartAt.In(hostLoc).Format("January 2, 2006"))
 	if text, html, err := email.RenderBookingConfirmed(data); err == nil {
 		_ = s.mailer.Send(b.GuestEmail, subject, text, html)
 		_ = s.mailer.Send(user.Email, subject, text, html)
@@ -116,7 +120,7 @@ func (s *Service) RejectBooking(ctx context.Context, token string) (*db.Booking,
 	}
 	b.Status = "REJECTED"
 
-	et, _, err := s.fetchEventTypeAndUser(b.EventTypeID)
+	et, user, err := s.fetchEventTypeAndUser(b.EventTypeID)
 	if err != nil {
 		return b, nil
 	}
@@ -127,6 +131,7 @@ func (s *Service) RejectBooking(ctx context.Context, token string) (*db.Booking,
 		EventTitle:   et.Title,
 		GuestMessage: et.RejectedMessage,
 		StartAt:      b.StartAt,
+		HostLocation: user.Location(),
 	}
 	if text, html, err := email.RenderBookingRejected(data); err == nil {
 		_ = s.mailer.Send(b.GuestEmail, subject, text, html)
@@ -149,15 +154,16 @@ func (s *Service) StartGCLoop(ctx context.Context) {
 				continue
 			}
 			for _, b := range cancelled {
-				et, _, err := s.fetchEventTypeAndUser(b.EventTypeID)
+				et, user, err := s.fetchEventTypeAndUser(b.EventTypeID)
 				if err != nil {
 					continue
 				}
 				subject := fmt.Sprintf("Your booking request for %s has expired", et.Title)
 				data := email.BookingEmailData{
-					GuestName:  b.GuestName,
-					EventTitle: et.Title,
-					StartAt:    b.StartAt,
+					GuestName:    b.GuestName,
+					EventTitle:   et.Title,
+					StartAt:      b.StartAt,
+					HostLocation: user.Location(),
 				}
 				if text, html, err := email.RenderBookingCancelled(data); err == nil {
 					_ = s.mailer.Send(b.GuestEmail, subject, text, html)

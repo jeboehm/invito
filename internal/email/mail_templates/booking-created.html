@@ -2,7 +2,7 @@
 <html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:2rem">
 <h2>New booking request</h2>
 <p><strong>{{.GuestName}}</strong> ({{.GuestEmail}}) wants to book <strong>{{.EventTitle}}</strong>.</p>
-<p><strong>Date & Time:</strong> {{.StartAt.Format "Monday, January 2, 2006 at 15:04 UTC"}}</p>
+<p><strong>Date & Time:</strong> {{inTZ .StartAt .HostLocation}} ({{.HostLocation.String}})</p>
 {{if .GuestNote}}<p><strong>Note:</strong><br>{{.GuestNote}}</p>{{end}}
 <p>
   <a href="{{.ConfirmURL}}" style="display:inline-block;padding:.5rem 1rem;background:#6366f1;color:#fff;text-decoration:none;border-radius:4px">Confirm</a>

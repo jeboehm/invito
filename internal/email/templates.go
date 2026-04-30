@@ -17,8 +17,19 @@ var (
 )
 
 func init() {
-	htmlTmpl = template.Must(template.New("").ParseFS(mailFS, "mail_templates/*.html"))
-	textTmpl = texttemplate.Must(texttemplate.New("").ParseFS(mailFS, "mail_templates/*.txt"))
+	inTZ := func(t time.Time, loc *time.Location) string {
+		if loc == nil {
+			loc = time.UTC
+		}
+		return t.In(loc).Format("Monday, January 2, 2006 at 15:04")
+	}
+
+	htmlTmpl = template.Must(
+		template.New("").Funcs(template.FuncMap{"inTZ": inTZ}).ParseFS(mailFS, "mail_templates/*.html"),
+	)
+	textTmpl = texttemplate.Must(
+		texttemplate.New("").Funcs(texttemplate.FuncMap{"inTZ": inTZ}).ParseFS(mailFS, "mail_templates/*.txt"),
+	)
 }
 
 type BookingEmailData struct {
@@ -29,6 +40,7 @@ type BookingEmailData struct {
 	EventTitle   string
 	GuestMessage string
 	StartAt      time.Time
+	HostLocation *time.Location // host's timezone; nil falls back to UTC in inTZ
 	ConfirmURL   string
 	RejectURL    string
 }

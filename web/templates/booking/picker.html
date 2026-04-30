@@ -9,7 +9,7 @@
   <div class="picker-header">
     <a href="/calendar/{{.User.Username}}/" class="back-link">← {{.User.Name}}</a>
     <h1>{{.EventType.Title}}</h1>
-    <p class="text-muted">{{.EventType.DurationMinutes}} min{{if .EventType.Description}} · {{.EventType.Description}}{{end}}</p>
+    <p class="text-muted">{{.EventType.DurationMinutes}} min{{if .EventType.Description}} · {{.EventType.Description}}{{end}} · Times in {{.HostTimezone}}</p>
   </div>
 
   <div class="date-nav">

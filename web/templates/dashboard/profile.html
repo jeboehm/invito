@@ -27,6 +27,15 @@
     <p class="form-hint">Your booking page URL: <code>{{.BaseURL}}/calendar/{{.User.Username}}/</code></p>
     <p class="form-hint text-warning">Warning: changing the slug will break any existing booking links you have shared.</p>
   </div>
+  <div class="form-group">
+    <label for="timezone">Timezone</label>
+    <select id="timezone" name="timezone">
+      {{range .Timezones}}
+      <option value="{{.}}"{{if eq . $.User.Timezone}} selected{{end}}>{{.}}</option>
+      {{end}}
+    </select>
+    <p class="form-hint">Your availability hours and all displayed times use this timezone.</p>
+  </div>
   <button type="submit" class="btn btn-primary">Save changes</button>
 </form>
 {{end}}

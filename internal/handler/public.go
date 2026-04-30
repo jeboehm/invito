@@ -62,6 +62,7 @@ type pickerData struct {
 	Dates        []time.Time
 	SelectedDate string
 	Slots        []calendar.Slot
+	HostTimezone string // IANA name shown to guests, e.g. "Europe/Berlin"
 }
 
 func (h *PublicHandler) HandleSlotPicker(w http.ResponseWriter, r *http.Request) {
@@ -88,21 +89,23 @@ func (h *PublicHandler) HandleSlotPicker(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	hostLoc := user.Location()
+
 	selectedDate := r.URL.Query().Get("date")
 	var date time.Time
 	if selectedDate != "" {
-		date, err = time.ParseInLocation("2006-01-02", selectedDate, time.Local)
+		date, err = time.ParseInLocation("2006-01-02", selectedDate, hostLoc)
 		if err != nil {
-			date = time.Now()
+			date = time.Now().In(hostLoc)
 		}
 	} else {
-		date = time.Now()
+		date = time.Now().In(hostLoc)
 		selectedDate = date.Format("2006-01-02")
 	}
-	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local)
+	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, hostLoc)
 
-	today := time.Now()
-	today = time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, time.Local)
+	today := time.Now().In(hostLoc)
+	today = time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, hostLoc)
 	dates := make([]time.Time, 7)
 	for i := range dates {
 		dates[i] = today.Add(time.Duration(i) * 24 * time.Hour)
@@ -116,6 +119,7 @@ func (h *PublicHandler) HandleSlotPicker(w http.ResponseWriter, r *http.Request)
 		Dates:        dates,
 		SelectedDate: selectedDate,
 		Slots:        h.calculateSlots(user, et, date),
+		HostTimezone: hostLoc.String(),
 	}
 
 	if isHTMX(r) {
@@ -157,7 +161,8 @@ func (h *PublicHandler) HandleBookingSubmit(w http.ResponseWriter, r *http.Reque
 	}
 	endAt := startAt.Add(time.Duration(et.DurationMinutes) * time.Minute)
 
-	date := time.Date(startAt.Year(), startAt.Month(), startAt.Day(), 0, 0, 0, 0, time.Local)
+	hostLoc := user.Location()
+	date := time.Date(startAt.Year(), startAt.Month(), startAt.Day(), 0, 0, 0, 0, hostLoc)
 	available := h.calculateSlots(user, et, date)
 	validSlot := false
 	for _, s := range available {
@@ -247,7 +252,7 @@ func (h *PublicHandler) calculateSlots(user *db.User, et *db.EventType, date tim
 		rules, events, bookings,
 		date,
 		time.Duration(et.DurationMinutes)*time.Minute,
-		time.Local,
+		user.Location(),
 		et.BookingWindowDays,
 		now,
 	)

@@ -1,7 +1,7 @@
 {{define "booking-rejected.html"}}<!DOCTYPE html>
 <html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:2rem">
 <h2>Booking request not accepted</h2>
-<p>Unfortunately your booking request for <strong>{{.EventTitle}}</strong> on {{.StartAt.Format "Monday, January 2, 2006"}} was not accepted.</p>
+<p>Unfortunately your booking request for <strong>{{.EventTitle}}</strong> on {{inTZ .StartAt .HostLocation}} ({{.HostLocation.String}}) was not accepted.</p>
 {{if .GuestMessage}}<p style="margin-top:1rem;padding:1rem;background:#f9fafb;border-left:3px solid #6366f1"><strong>Message from host:</strong><br>{{.GuestMessage}}</p>{{end}}
 <p>You are welcome to request another time slot.</p>
 </body></html>{{end}}
