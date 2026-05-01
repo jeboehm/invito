@@ -1,0 +1,13 @@
+{{define "booking/widget-confirm.html"}}
+{{template "widget-layout.html" .}}
+{{end}}
+
+{{define "title"}}{{.Title}}{{end}}
+
+{{define "content"}}
+<div class="content-narrow confirm-page">
+  <div class="confirm-icon">{{.Icon}}</div>
+  <h1>{{.Title}}</h1>
+  <p>{{.Message}}</p>
+</div>
+{{end}}

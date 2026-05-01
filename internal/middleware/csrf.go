@@ -81,3 +81,15 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// SecurityHeadersEmbeddable sets security headers for routes that must be embeddable in iframes.
+// It omits X-Frame-Options and instead sets frame-ancestors * via Content-Security-Policy.
+func SecurityHeadersEmbeddable(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("Content-Security-Policy", "frame-ancestors *")
+		h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		next.ServeHTTP(w, r)
+	})
+}

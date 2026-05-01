@@ -50,6 +50,7 @@ func main() {
 	authH := handler.NewAuthHandler(cfg, database, oidcProvider)
 	dashH := handler.NewDashboardHandler(cfg, database)
 	pubH := handler.NewPublicHandler(cfg, database, bookingSvc)
+	widgetH := handler.NewWidgetHandler(pubH)
 
 	requireAuth := auth.RequireAuth(database)
 	optionalAuth := auth.OptionalAuth(database)
@@ -68,6 +69,11 @@ func main() {
 	mux.Handle("POST /calendar/{username}/{slug}/book", bookingLimiter(http.HandlerFunc(pubH.HandleBookingSubmit)))
 	mux.HandleFunc("GET /booking/{token}/confirm", pubH.HandleBookingConfirm)
 	mux.HandleFunc("GET /booking/{token}/reject", pubH.HandleBookingReject)
+
+	// Widget routes — separate mux without CSRF and without X-Frame-Options
+	widgetMux := http.NewServeMux()
+	widgetMux.HandleFunc("GET /widget/{username}/{slug}", widgetH.HandleWidgetSlotPicker)
+	widgetMux.Handle("POST /widget/{username}/{slug}/book", bookingLimiter(http.HandlerFunc(widgetH.HandleWidgetBookingSubmit)))
 
 	// Auth routes
 	mux.HandleFunc("GET /auth/login", authH.HandleLogin)
@@ -94,8 +100,17 @@ func main() {
 	dash("GET", "/dashboard/profile", dashH.HandleProfileGet)
 	dash("POST", "/dashboard/profile", dashH.HandleProfilePost)
 
-	// Global middleware
-	rootHandler := middleware.Logging(middleware.SecurityHeaders(middleware.CSRF(strings.HasPrefix(cfg.BaseURL, "https://"))(mux)))
+	// Global middleware: main routes get CSRF + X-Frame-Options DENY; widget routes get embeddable headers without CSRF.
+	isSecure := strings.HasPrefix(cfg.BaseURL, "https://")
+	mainChain := middleware.Logging(middleware.SecurityHeaders(middleware.CSRF(isSecure)(mux)))
+	widgetChain := middleware.Logging(middleware.SecurityHeadersEmbeddable(widgetMux))
+	rootHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/widget/") {
+			widgetChain.ServeHTTP(w, r)
+		} else {
+			mainChain.ServeHTTP(w, r)
+		}
+	})
 
 	// Background jobs
 	go calendar.StartSyncLoop(ctx, database, cfg.SessionSecret, cfg.SyncInterval)

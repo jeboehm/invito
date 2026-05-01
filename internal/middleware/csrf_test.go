@@ -117,3 +117,30 @@ func TestCSRF_PostWithMissingToken(t *testing.T) {
 		t.Fatalf("POST with missing token: got %d, want 403", rec.Code)
 	}
 }
+
+func TestSecurityHeaders_SetsXFrameOptionsDeny(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	middleware.SecurityHeaders(ok).ServeHTTP(rec, req)
+	if got := rec.Header().Get("X-Frame-Options"); got != "DENY" {
+		t.Fatalf("X-Frame-Options: got %q, want DENY", got)
+	}
+}
+
+func TestSecurityHeadersEmbeddable_NoXFrameOptions(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	middleware.SecurityHeadersEmbeddable(ok).ServeHTTP(rec, req)
+	if got := rec.Header().Get("X-Frame-Options"); got != "" {
+		t.Fatalf("X-Frame-Options must not be set for embeddable routes, got %q", got)
+	}
+}
+
+func TestSecurityHeadersEmbeddable_FrameAncestors(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	middleware.SecurityHeadersEmbeddable(ok).ServeHTTP(rec, req)
+	if got := rec.Header().Get("Content-Security-Policy"); got != "frame-ancestors *" {
+		t.Fatalf("Content-Security-Policy: got %q, want \"frame-ancestors *\"", got)
+	}
+}

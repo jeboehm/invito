@@ -16,11 +16,14 @@ import (
 // Each page template is parsed in its own isolated set so that
 // {{define "content"}} blocks from different pages don't overwrite each other.
 var templateDeps = map[string][]string{
-	"landing.html":                   {"layout.html", "landing.html"},
-	"booking/list.html":              {"layout.html", "booking/list.html"},
-	"booking/picker.html":            {"layout.html", "booking/slots-partial.html", "booking/picker.html"},
-	"booking/slots-partial.html":     {"booking/slots-partial.html"},
-	"booking/confirm.html":           {"layout.html", "booking/confirm.html"},
+	"landing.html":                         {"layout.html", "landing.html"},
+	"booking/list.html":                    {"layout.html", "booking/list.html"},
+	"booking/picker.html":                  {"layout.html", "booking/slots-partial.html", "booking/picker.html"},
+	"booking/slots-partial.html":           {"booking/slots-partial.html"},
+	"booking/confirm.html":                 {"layout.html", "booking/confirm.html"},
+	"booking/widget.html":                  {"widget-layout.html", "booking/widget-slots-partial.html", "booking/widget.html"},
+	"booking/widget-slots-partial.html":    {"booking/widget-slots-partial.html"},
+	"booking/widget-confirm.html":          {"widget-layout.html", "booking/widget-confirm.html"},
 	"dashboard/index.html":           {"layout.html", "dashboard/index.html"},
 	"dashboard/calendars.html":       {"layout.html", "dashboard/index.html", "dashboard/calendars.html"},
 	"dashboard/availability.html":    {"layout.html", "dashboard/index.html", "dashboard/availability.html"},

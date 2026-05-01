@@ -339,8 +339,9 @@ func (h *DashboardHandler) HandleEventTypeEditGet(w http.ResponseWriter, r *http
 	render(w, "dashboard/event-type-edit.html", struct {
 		baseData
 		EventType *db.EventType
+		BaseURL   string
 		Error     string
-	}{baseDash(r, user, "event-types"), et, ""})
+	}{baseDash(r, user, "event-types"), et, h.cfg.BaseURL, ""})
 }
 
 func (h *DashboardHandler) HandleEventTypePost(w http.ResponseWriter, r *http.Request) {
@@ -373,8 +374,9 @@ func (h *DashboardHandler) HandleEventTypePost(w http.ResponseWriter, r *http.Re
 		render(w, "dashboard/event-type-edit.html", struct {
 			baseData
 			EventType *db.EventType
+			BaseURL   string
 			Error     string
-		}{baseDash(r, user, "event-types"), et, "Could not update event type"})
+		}{baseDash(r, user, "event-types"), et, h.cfg.BaseURL, "Could not update event type"})
 		return
 	}
 

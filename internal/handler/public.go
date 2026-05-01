@@ -66,6 +66,10 @@ type pickerData struct {
 }
 
 func (h *PublicHandler) HandleSlotPicker(w http.ResponseWriter, r *http.Request) {
+	h.handleSlotPicker(w, r, "booking/picker.html", "booking/slots-partial.html")
+}
+
+func (h *PublicHandler) handleSlotPicker(w http.ResponseWriter, r *http.Request, fullTmpl, partialTmpl string) {
 	username := r.PathValue("username")
 	slug := r.PathValue("slug")
 
@@ -90,22 +94,21 @@ func (h *PublicHandler) HandleSlotPicker(w http.ResponseWriter, r *http.Request)
 	}
 
 	hostLoc := user.Location()
-
+	now := time.Now().In(hostLoc)
 	selectedDate := r.URL.Query().Get("date")
 	var date time.Time
 	if selectedDate != "" {
 		date, err = time.ParseInLocation("2006-01-02", selectedDate, hostLoc)
 		if err != nil {
-			date = time.Now().In(hostLoc)
+			date = now
 		}
 	} else {
-		date = time.Now().In(hostLoc)
+		date = now
 		selectedDate = date.Format("2006-01-02")
 	}
 	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, hostLoc)
 
-	today := time.Now().In(hostLoc)
-	today = time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, hostLoc)
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, hostLoc)
 	dates := make([]time.Time, 7)
 	for i := range dates {
 		dates[i] = today.Add(time.Duration(i) * 24 * time.Hour)
@@ -123,13 +126,12 @@ func (h *PublicHandler) HandleSlotPicker(w http.ResponseWriter, r *http.Request)
 	}
 
 	if isHTMX(r) {
-		render(w, "booking/slots-partial.html", data)
+		render(w, partialTmpl, data)
 		return
 	}
-	render(w, "booking/picker.html", data)
+	render(w, fullTmpl, data)
 }
 
-// confirmData is the template data for booking/confirm.html (submit, confirm, reject).
 type confirmData struct {
 	baseData
 	Icon    string
@@ -138,12 +140,20 @@ type confirmData struct {
 }
 
 func (h *PublicHandler) HandleBookingSubmit(w http.ResponseWriter, r *http.Request) {
+	h.handleBookingSubmit(w, r, "booking/confirm.html")
+}
+
+func (h *PublicHandler) handleBookingSubmit(w http.ResponseWriter, r *http.Request, confirmTmpl string) {
 	username := r.PathValue("username")
 	slug := r.PathValue("slug")
 
 	user, err := db.GetUserByUsername(h.db, username)
-	if err != nil {
+	if err == sql.ErrNoRows {
 		http.NotFound(w, r)
+		return
+	}
+	if err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
 		return
 	}
 	et, err := db.GetEventTypeBySlug(h.db, user.ID, slug)
@@ -192,7 +202,7 @@ func (h *PublicHandler) HandleBookingSubmit(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	render(w, "booking/confirm.html", confirmData{
+	render(w, confirmTmpl, confirmData{
 		baseNoNav(r),
 		"📅",
 		"Booking request sent!",
