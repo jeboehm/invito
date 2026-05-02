@@ -88,6 +88,8 @@ Open `http://localhost:8080` (or your configured domain). You should see the Inv
 
 Click **Sign in** on the landing page. You are redirected to your OIDC provider. After authenticating, you land on the dashboard.
 
+![Dashboard overview](../assets/dashboard-overview.png)
+
 Your username (shown in the top navigation) is derived from your OIDC `preferred_username`. Your public booking URL is:
 
 ```
@@ -147,6 +149,8 @@ Open the booking URL in a private browser window (to simulate a guest).
 3. Click an available time slot.
 4. Fill in a name and email address, then submit.
 
+![Slot picker](../assets/slot-picker.png)
+
 You should receive a notification email at the address associated with your account.
 
 ---
@@ -174,3 +178,5 @@ You now have a working Invito instance. Share `/calendar/{username}/` with anyon
 - [Share a booking link](../how-to/share-booking-link.md)
 - [Create more event types](../how-to/create-event-type.md)
 - [Add additional calendars](../how-to/add-calendar.md)
+- [Set your availability](../how-to/set-availability.md)
+- [Embed a booking widget on your website](../how-to/embed-widget.md)

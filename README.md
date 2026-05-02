@@ -2,6 +2,8 @@
 
 A lightweight, self-hosted scheduling tool. Give guests a link — they pick a time that works for both of you.
 
+![Invito slot picker](docs/assets/slot-picker.png)
+
 Invito connects to your existing CalDAV calendars to find open slots and blocks time when a booking is confirmed. No cloud lock-in, no monthly fee.
 
 ## Features
@@ -9,7 +11,8 @@ Invito connects to your existing CalDAV calendars to find open slots and blocks 
 - **CalDAV integration** — connects to any CalDAV server (Nextcloud, iCloud, Google Calendar via DAV, etc.)
 - **Multiple event types** — define different meeting kinds with fixed durations (e.g. "30-min intro call", "1-hour consultation")
 - **Public booking pages** — share a link; guests book without needing an account
-- **Pending approval** — every booking request waits for your confirmation for up to 24 hours
+- **Embeddable widget** — embed the booking picker as an iframe on any website
+- **Pending approval** — every booking request waits for your confirmation before being added to your calendar
 - **Email notifications** — accept or reject bookings directly from your inbox
 - **OIDC login** — no separate user database; plug in your existing identity provider
 - **Single binary** — deploy with one file and an SQLite database
@@ -58,7 +61,11 @@ Invito's documentation follows the [Diátaxis framework](https://diataxis.fr/):
 | [Tutorial](docs/tutorials/getting-started.md)                     | Step-by-step: from install to first confirmed booking |
 | [How-to: Add a calendar](docs/how-to/add-calendar.md)             | Connect a CalDAV calendar                             |
 | [How-to: Create an event type](docs/how-to/create-event-type.md)  | Define a new meeting kind                             |
+| [How-to: Set your availability](docs/how-to/set-availability.md)  | Configure recurring weekly office hours               |
 | [How-to: Share a booking link](docs/how-to/share-booking-link.md) | Send guests a link                                    |
+| [How-to: Manage bookings](docs/how-to/manage-bookings.md)         | View and filter booking requests                      |
+| [How-to: Set up your profile](docs/how-to/set-up-profile.md)      | Configure username and timezone                       |
+| [How-to: Embed a booking widget](docs/how-to/embed-widget.md)     | Add an iframe booking picker to your website          |
 | [Explanation: Architecture](docs/explanation/architecture.md)     | Design decisions and system overview                  |
 | [Explanation: Data model](docs/explanation/data-model.md)         | Entities and relationships                            |
 | [Explanation: Booking flow](docs/explanation/booking-flow.md)     | How a booking moves from request to confirmation      |

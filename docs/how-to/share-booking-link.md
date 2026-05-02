@@ -2,6 +2,8 @@
 
 Invito provides two types of booking links. Choose the one that fits your use case.
 
+![Public booking page](../assets/booking-page.png)
+
 ## Link types
 
 ### Generic link (guest chooses the event type)

@@ -1,4 +1,4 @@
-.PHONY: build test e2e e2e-visible
+.PHONY: build test e2e e2e-visible docs
 include dev/local.env
 
 build:
@@ -19,3 +19,6 @@ up:
 
 down:
 	docker compose down --remove-orphans
+
+docs:
+	docker compose --profile docs up docs
