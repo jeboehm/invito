@@ -1,6 +1,8 @@
 # How to Create an Event Type
 
-An event type defines a named, fixed-duration meeting kind that guests can book. You can have multiple event types — for example, a short intro call and a longer working session.
+An event type defines a named, fixed-duration meeting kind that guests can book.
+
+![Event Types page](../assets/event-types.png) You can have multiple event types — for example, a short intro call and a longer working session.
 
 ## Prerequisites
 
@@ -35,6 +37,13 @@ https://invito.example.com/{your-username}/{slug}
 1. Go to **Dashboard → Event Types**.
 2. Click **Edit** next to the event type.
 3. Modify the fields and click **Save**.
+
+The edit form includes two additional fields not available during creation:
+
+| Field                 | Description                                                                             |
+| --------------------- | --------------------------------------------------------------------------------------- |
+| **Confirmed message** | Text included in the confirmation email sent to the guest when you confirm the booking. |
+| **Rejected message**  | Text included in the rejection email sent to the guest when you reject the booking.     |
 
 **Note:** Changing the slug changes the public URL. Any links you have already shared will stop working.
 

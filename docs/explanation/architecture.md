@@ -49,7 +49,16 @@ There is no message broker between these goroutines. The HTTP server reads from 
 
 Each OIDC identity maps to one user row. Users are isolated: a user's calendars, event types, and bookings are not visible to or accessible by other users. There is no concept of "admin" within the application — the OIDC provider controls who can log in.
 
-Public booking pages are keyed by `username` (a URL-safe slug derived from the OIDC `preferred_username` claim). A user cannot change their username after creation.
+Public booking pages are keyed by `username` (a URL-safe slug derived from the OIDC `preferred_username` claim). A user can change their username in their profile settings, but doing so invalidates all previously shared booking links.
+
+## Dual HTTP Multiplexer
+
+Invito uses two separate HTTP multiplexers:
+
+1. **Main mux** — handles all routes except `/widget/`. Applies CSRF double-submit cookie protection and sets `X-Frame-Options: DENY` to prevent the UI from being embedded in iframes.
+2. **Widget mux** — handles `/widget/{username}/{slug}` routes only. No CSRF middleware (the widget is stateless and does not use cookies), and `X-Frame-Options` is set to `ALLOWALL` to permit iframe embedding on external sites.
+
+The booking logic (slot calculation, conflict detection, email notifications) is shared between both multiplexers. The split is purely about transport-level security policy.
 
 ## Security Considerations
 

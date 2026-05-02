@@ -268,6 +268,59 @@ Lists all bookings for the user's event types.
 
 ---
 
+## Widget Routes
+
+The widget routes serve an embeddable version of the booking picker. They are handled by a separate HTTP multiplexer with `X-Frame-Options: ALLOWALL` and no CSRF protection, which allows the widget to be embedded in iframes on external sites.
+
+---
+
+### `GET /widget/{username}/{slug}`
+
+Embeddable slot picker for a specific event type. Functionally identical to `GET /calendar/{username}/{slug}` but rendered with a minimal layout and no X-Frame-Options restriction.
+
+**Path parameters:**
+
+- `username` — user's public slug.
+- `slug` — event type slug.
+
+**Query parameters:**
+
+- `date` (optional) — `YYYY-MM-DD`. Loads slots for a specific date (HTMX partial).
+
+**Response:**
+
+- `200 OK` — full widget HTML or slot list partial (HTMX).
+- `404 Not Found` — unknown username or slug, or event type is inactive.
+
+---
+
+### `POST /widget/{username}/{slug}/book`
+
+Submits a booking from the embedded widget.
+
+**Path parameters:**
+
+- `username`, `slug` — as above.
+
+**Form fields:**
+
+| Field         | Required | Description                  |
+| ------------- | -------- | ---------------------------- |
+| `guest_name`  | yes      | Guest's full name            |
+| `guest_email` | yes      | Guest's email address        |
+| `slot`        | yes      | ISO 8601 start time in UTC   |
+| `guest_note`  | no       | Optional message to the host |
+
+Note: no `csrf_token` field — the widget mux does not enforce CSRF.
+
+**Response:**
+
+- `200 OK` — HTML confirmation message rendered inside the widget.
+- `409 Conflict` — slot no longer available.
+- `422 Unprocessable Entity` — validation errors.
+
+---
+
 ## Error Pages
 
 | Status | Page                                                                        |

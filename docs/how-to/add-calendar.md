@@ -2,6 +2,8 @@
 
 This guide explains how to connect a CalDAV calendar to Invito so that it is included in your free/busy calculation.
 
+![Calendars page](../assets/calendars.png)
+
 ## Prerequisites
 
 - You are logged in to your Invito dashboard.

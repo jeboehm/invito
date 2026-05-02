@@ -1,0 +1,31 @@
+site_name: invito
+site_description: A lightweight, self-hosted scheduling tool.
+site_url: https://jeboehm.github.io/invito/
+repo_name: jeboehm/invito
+repo_url: https://github.com/jeboehm/invito
+edit_uri: blob/main/docs/
+remote_branch: gh-pages
+theme: readthedocs
+markdown_extensions:
+  - admonition
+  - pymdownx.fancylists
+  - pymdownx.superfences
+nav:
+  - Welcome: index.md
+  - Tutorial:
+      - Getting Started: tutorials/getting-started.md
+  - How-to guides:
+      - Connect a CalDAV calendar: how-to/add-calendar.md
+      - Create an event type: how-to/create-event-type.md
+      - Set your availability: how-to/set-availability.md
+      - Share a booking link: how-to/share-booking-link.md
+      - Manage bookings: how-to/manage-bookings.md
+      - Set up your profile: how-to/set-up-profile.md
+      - Embed a booking widget: how-to/embed-widget.md
+  - Reference:
+      - Configuration: reference/configuration.md
+      - HTTP API: reference/api.md
+  - Explanation:
+      - Architecture: explanation/architecture.md
+      - Booking flow: explanation/booking-flow.md
+      - Data model: explanation/data-model.md

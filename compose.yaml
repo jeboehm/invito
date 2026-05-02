@@ -66,6 +66,16 @@ services:
     networks:
       - invito
     restart: unless-stopped
+  # ── MkDocs (documentation) ───────────────────────────────────────────────────
+  docs:
+    image: squidfunk/mkdocs-material:latest
+    command: serve --dev-addr=0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/docs
+    profiles:
+      - docs
 networks:
   invito:
 volumes:
