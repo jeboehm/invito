@@ -50,29 +50,25 @@ go build -o invito ./cmd/invito
 INVITO_BASE_URL=http://localhost:8080 ./invito
 ```
 
-See [Getting Started](docs/tutorials/getting-started.md) for a full walkthrough.
+See [Getting Started](https://jeboehm.github.io/invito/tutorials/getting-started/) for a full walkthrough.
 
 ## Documentation
 
-Invito's documentation follows the [Diátaxis framework](https://diataxis.fr/):
-
-| Type                                                              | Content                                               |
-| ----------------------------------------------------------------- | ----------------------------------------------------- |
-| [Tutorial](docs/tutorials/getting-started.md)                     | Step-by-step: from install to first confirmed booking |
-| [How-to: Add a calendar](docs/how-to/add-calendar.md)             | Connect a CalDAV calendar                             |
-| [How-to: Create an event type](docs/how-to/create-event-type.md)  | Define a new meeting kind                             |
-| [How-to: Set your availability](docs/how-to/set-availability.md)  | Configure recurring weekly office hours               |
-| [How-to: Share a booking link](docs/how-to/share-booking-link.md) | Send guests a link                                    |
-| [How-to: Manage bookings](docs/how-to/manage-bookings.md)         | View and filter booking requests                      |
-| [How-to: Set up your profile](docs/how-to/set-up-profile.md)      | Configure username and timezone                       |
-| [How-to: Embed a booking widget](docs/how-to/embed-widget.md)     | Add an iframe booking picker to your website          |
-| [Explanation: Architecture](docs/explanation/architecture.md)     | Design decisions and system overview                  |
-| [Explanation: Data model](docs/explanation/data-model.md)         | Entities and relationships                            |
-| [Explanation: Booking flow](docs/explanation/booking-flow.md)     | How a booking moves from request to confirmation      |
-| [Reference: Configuration](docs/reference/configuration.md)       | All environment variables                             |
-| [Reference: HTTP API](docs/reference/api.md)                      | All routes and their behavior                         |
-
-The full technical specification lives in [SPEC.md](SPEC.md).
+| Type                                                                                        | Content                                               |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| [Tutorial](https://jeboehm.github.io/invito/tutorials/getting-started/)                     | Step-by-step: from install to first confirmed booking |
+| [How-to: Add a calendar](https://jeboehm.github.io/invito/how-to/add-calendar/)             | Connect a CalDAV calendar                             |
+| [How-to: Create an event type](https://jeboehm.github.io/invito/how-to/create-event-type/)  | Define a new meeting kind                             |
+| [How-to: Set your availability](https://jeboehm.github.io/invito/how-to/set-availability/)  | Configure recurring weekly office hours               |
+| [How-to: Share a booking link](https://jeboehm.github.io/invito/how-to/share-booking-link/) | Send guests a link                                    |
+| [How-to: Manage bookings](https://jeboehm.github.io/invito/how-to/manage-bookings/)         | View and filter booking requests                      |
+| [How-to: Set up your profile](https://jeboehm.github.io/invito/how-to/set-up-profile/)      | Configure username and timezone                       |
+| [How-to: Embed a booking widget](https://jeboehm.github.io/invito/how-to/embed-widget/)     | Add an iframe booking picker to your website          |
+| [Explanation: Architecture](https://jeboehm.github.io/invito/explanation/architecture/)     | Design decisions and system overview                  |
+| [Explanation: Data model](https://jeboehm.github.io/invito/explanation/data-model/)         | Entities and relationships                            |
+| [Explanation: Booking flow](https://jeboehm.github.io/invito/explanation/booking-flow/)     | How a booking moves from request to confirmation      |
+| [Reference: Configuration](https://jeboehm.github.io/invito/reference/configuration/)       | All environment variables                             |
+| [Reference: HTTP API](https://jeboehm.github.io/invito/reference/api/)                      | All routes and their behavior                         |
 
 ## Contributing
 

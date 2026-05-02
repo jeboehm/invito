@@ -5,7 +5,8 @@ repo_name: jeboehm/invito
 repo_url: https://github.com/jeboehm/invito
 edit_uri: blob/main/docs/
 remote_branch: gh-pages
-theme: readthedocs
+theme:
+  name: material
 markdown_extensions:
   - admonition
   - pymdownx.fancylists
