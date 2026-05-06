@@ -10,6 +10,10 @@
   <h1>Bookings</h1>
 </div>
 
+{{if .Flash}}
+<div class="alert alert-success">{{.Flash}}</div>
+{{end}}
+
 <div class="action-row filter-row">
   {{range .StatusOptions}}
   <a href="/dashboard/bookings{{if .}}?status={{.}}{{end}}"

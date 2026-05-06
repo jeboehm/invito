@@ -135,22 +135,19 @@ func TestCompleteBookingFlow(t *testing.T) {
 		t.Errorf("expected PENDING booking, got badge text %q", pendingBadge)
 	}
 
-	// Click the Confirm link for the booking.
+	// Click the Confirm link — redirects back to the bookings page with a flash message.
 	if err := page.Click(`a[href*="/confirm"]`); err != nil {
 		t.Fatalf("click confirm: %v", err)
 	}
-	confirmTitle, err := page.InnerText("h1")
+	flashText, err := page.InnerText(".alert-success")
 	if err != nil {
-		t.Fatalf("read confirm page title: %v", err)
+		t.Fatalf("read flash message: %v", err)
 	}
-	if !strings.Contains(confirmTitle, "confirmed") {
-		t.Errorf("confirm page title: got %q, want it to contain %q", confirmTitle, "confirmed")
+	if !strings.Contains(flashText, "confirmed") {
+		t.Errorf("flash message: got %q, want it to contain %q", flashText, "confirmed")
 	}
 
 	// --- 8. Verify booking is CONFIRMED in the dashboard ---
-	if _, err := page.Goto(serverURL + "/dashboard/bookings"); err != nil {
-		t.Fatalf("navigate back to bookings: %v", err)
-	}
 	if _, err := page.WaitForSelector("table"); err != nil {
 		t.Fatalf("wait for table: %v", err)
 	}

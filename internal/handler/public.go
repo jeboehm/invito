@@ -3,6 +3,7 @@ package handler
 import (
 	"database/sql"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/jeboehm/invito/internal/auth"
@@ -222,13 +223,12 @@ func (h *PublicHandler) HandleBookingConfirm(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	msg := "The booking has been confirmed and a calendar event has been created."
+	msg := "Booking confirmed."
 	if b.Status != "CONFIRMED" {
-		// Booking was already processed (rejected or cancelled); treat as confirmed.
 		msg = "This booking has already been processed."
 	}
 
-	render(w, "booking/confirm.html", confirmData{baseNoNav(r), "✓", "Booking confirmed!", msg})
+	http.Redirect(w, r, "/dashboard/bookings?flash="+url.QueryEscape(msg), http.StatusSeeOther)
 }
 
 func (h *PublicHandler) HandleBookingReject(w http.ResponseWriter, r *http.Request) {
@@ -243,10 +243,7 @@ func (h *PublicHandler) HandleBookingReject(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	render(w, "booking/confirm.html", confirmData{
-		baseNoNav(r), "✗", "Booking rejected",
-		"The booking request has been rejected. The guest has been notified.",
-	})
+	http.Redirect(w, r, "/dashboard/bookings?flash="+url.QueryEscape("Booking rejected."), http.StatusSeeOther)
 }
 
 func (h *PublicHandler) calculateSlots(user *db.User, et *db.EventType, date time.Time) []calendar.Slot {

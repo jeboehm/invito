@@ -401,17 +401,20 @@ type bookingsData struct {
 	Bookings      []db.BookingWithEventType
 	StatusFilter  string
 	StatusOptions []string
+	Flash         string
 }
 
 func (h *DashboardHandler) HandleBookingsGet(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	status := r.URL.Query().Get("status")
+	flash := r.URL.Query().Get("flash")
 	bookings, _ := db.ListBookingsForUser(h.db, user.ID, status, 100)
 	render(w, "dashboard/bookings.html", bookingsData{
 		baseDash(r, user, "bookings"),
 		bookings,
 		status,
 		[]string{"", "PENDING", "CONFIRMED", "REJECTED", "CANCELLED"},
+		flash,
 	})
 }
 

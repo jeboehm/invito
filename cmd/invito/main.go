@@ -67,8 +67,6 @@ func main() {
 	mux.HandleFunc("GET /calendar/{username}/{slug}", pubH.HandleSlotPicker)
 	bookingLimiter := middleware.RateLimit(ctx, 10.0/60, 5)
 	mux.Handle("POST /calendar/{username}/{slug}/book", bookingLimiter(http.HandlerFunc(pubH.HandleBookingSubmit)))
-	mux.HandleFunc("GET /booking/{token}/confirm", pubH.HandleBookingConfirm)
-	mux.HandleFunc("GET /booking/{token}/reject", pubH.HandleBookingReject)
 
 	// Widget routes — separate mux without CSRF and without X-Frame-Options
 	widgetMux := http.NewServeMux()
@@ -97,6 +95,8 @@ func main() {
 	dash("POST", "/dashboard/event-types/{id}", dashH.HandleEventTypePost)
 	dash("POST", "/dashboard/event-types/{id}/toggle", dashH.HandleEventTypeToggle)
 	dash("GET", "/dashboard/bookings", dashH.HandleBookingsGet)
+	dash("GET", "/booking/{token}/confirm", pubH.HandleBookingConfirm)
+	dash("GET", "/booking/{token}/reject", pubH.HandleBookingReject)
 	dash("GET", "/dashboard/profile", dashH.HandleProfileGet)
 	dash("POST", "/dashboard/profile", dashH.HandleProfilePost)
 
