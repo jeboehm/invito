@@ -25,7 +25,6 @@ nav:
       - Embed a booking widget: how-to/embed-widget.md
   - Reference:
       - Configuration: reference/configuration.md
-      - HTTP API: reference/api.md
   - Explanation:
       - Architecture: explanation/architecture.md
       - Booking flow: explanation/booking-flow.md

@@ -13,11 +13,7 @@ This document explains the design decisions behind Invito — why the system is 
 
 Go produces a statically-linked binary with no runtime dependencies. Combined with `modernc.org/sqlite` (a CGO-free SQLite port), the entire application ships as a single executable. There is no Node.js version mismatch, no Python virtualenv, no JVM to tune.
 
-Go's standard library covers HTTP, TLS, templating, and SMTP. The number of third-party dependencies is kept intentionally small:
-
-- `coreos/go-oidc` — OIDC discovery and token validation
-- `emersion/go-webdav` — CalDAV client
-- `modernc.org/sqlite` — SQLite driver (no CGO)
+Go's standard library covers HTTP, TLS, templating, and SMTP. The number of third-party dependencies is kept intentionally small.
 
 ## Why SQLite?
 

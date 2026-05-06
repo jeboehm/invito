@@ -49,7 +49,6 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/):
 | **How-to**      | [Set up your profile](how-to/set-up-profile.md)                                           |
 | **How-to**      | [Embed a booking widget](how-to/embed-widget.md)                                          |
 | **Reference**   | [Configuration](reference/configuration.md) — all environment variables                   |
-| **Reference**   | [HTTP API](reference/api.md) — all routes and their behavior                              |
 | **Explanation** | [Architecture](explanation/architecture.md) — design decisions                            |
 | **Explanation** | [Booking flow](explanation/booking-flow.md) — request to confirmation                     |
 | **Explanation** | [Data model](explanation/data-model.md) — entities and relationships                      |
