@@ -59,7 +59,7 @@ services:
       start_period: 60s # Nextcloud takes a while on first run
   # ── Mailpit (SMTP catch-all) ─────────────────────────────────────────────────
   mailpit:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:latest@sha256:757f22b56c1da03570afdb3d259effe5091018008a81bbedc8158cee7e16fdbc
     ports:
       - "8025:8025" # web UI
       - "1025:1025" # SMTP (no auth required)
@@ -68,7 +68,7 @@ services:
     restart: unless-stopped
   # ── MkDocs (documentation) ───────────────────────────────────────────────────
   docs:
-    image: squidfunk/mkdocs-material:latest
+    image: squidfunk/mkdocs-material:latest@sha256:868ad4d39fb5865b72d00173ade00f4eae2b38dde7ff790a011cc44ce4a8ff8e
     command: serve --dev-addr=0.0.0.0:8000
     ports:
       - "8000:8000"
