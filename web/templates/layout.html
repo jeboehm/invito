@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{block "title" .}}Invito{{end}}</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+<header class="site-header">
+  <a href="/" class="logo">Invito</a>
+  {{if not .HideNav}}
+  <nav>
+    {{if .User}}
+      <a href="/dashboard">Dashboard</a>
+      <form method="post" action="/auth/logout" class="form-inline">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <button type="submit" class="btn-link">Sign out</button>
+      </form>
+    {{else}}
+      <a href="https://jeboehm.github.io/invito/">Documentation</a>
+      <a href="https://github.com/jeboehm/invito">GitHub</a>
+      <a href="/auth/login" class="btn">Sign in</a>
+    {{end}}
+  </nav>
+  {{end}}
+</header>
+<main>
+{{block "content" .}}{{end}}
+</main>
+</body>
+</html>

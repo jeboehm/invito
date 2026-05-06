@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{block "title" .}}Booking{{end}}</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+<main>
+{{block "content" .}}{{end}}
+</main>
+<script>
+var _iLastH = 0;
+function sendHeight() {
+  var h = document.body.scrollHeight;
+  if (h !== _iLastH) {
+    _iLastH = h;
+    window.parent.postMessage({type: 'invito-resize', height: h}, '*');
+  }
+}
+document.addEventListener('DOMContentLoaded', sendHeight);
+document.addEventListener('htmx:afterSwap', sendHeight);
+</script>
+</body>
+</html>

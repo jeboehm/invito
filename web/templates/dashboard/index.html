@@ -1,0 +1,48 @@
+{{define "dashboard/index.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}Dashboard — Invito{{end}}
+
+{{define "content"}}
+{{template "dash-nav" .}}
+<div class="page-header">
+  <h1>Overview</h1>
+</div>
+
+{{if gt .PendingCount 0}}
+<div class="alert alert-warning">
+  You have <strong>{{.PendingCount}}</strong> pending booking request{{if gt .PendingCount 1}}s{{end}}.
+  <a href="/dashboard/bookings?status=PENDING">Review now →</a>
+</div>
+{{end}}
+
+<h2 class="section-heading">Upcoming confirmed bookings</h2>
+{{if .Upcoming}}
+<table>
+  <thead><tr><th>Date & Time</th><th>Guest</th><th>Event Type</th></tr></thead>
+  <tbody>
+  {{range .Upcoming}}
+  <tr>
+    <td>{{inTZ .StartAt $.User.Location}}</td>
+    <td>{{.GuestName}}<br><small class="text-muted">{{.GuestEmail}}</small></td>
+    <td>{{.EventType.Title}}</td>
+  </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="text-muted">No upcoming bookings.</p>
+{{end}}
+{{end}}
+
+{{define "dash-nav"}}
+<nav class="dash-nav">
+  <a href="/dashboard"              class="{{if eq .NavActive "overview"}}active{{end}}">Overview</a>
+  <a href="/dashboard/calendars"    class="{{if eq .NavActive "calendars"}}active{{end}}">Calendars</a>
+  <a href="/dashboard/availability" class="{{if eq .NavActive "availability"}}active{{end}}">Availability</a>
+  <a href="/dashboard/event-types"  class="{{if eq .NavActive "event-types"}}active{{end}}">Event Types</a>
+  <a href="/dashboard/bookings"     class="{{if eq .NavActive "bookings"}}active{{end}}">Bookings</a>
+  <a href="/dashboard/profile"      class="{{if eq .NavActive "profile"}}active{{end}}">Profile</a>
+</nav>
+{{end}}

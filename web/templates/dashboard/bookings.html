@@ -1,0 +1,59 @@
+{{define "dashboard/bookings.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}Bookings — Invito{{end}}
+
+{{define "content"}}
+{{template "dash-nav" .}}
+<div class="page-header">
+  <h1>Bookings</h1>
+</div>
+
+{{if .Flash}}
+<div class="alert alert-success">{{.Flash}}</div>
+{{end}}
+
+<div class="action-row filter-row">
+  {{range .StatusOptions}}
+  <a href="/dashboard/bookings{{if .}}?status={{.}}{{end}}"
+     class="btn{{if eq . $.StatusFilter}} btn-primary{{end}}">
+    {{if .}}{{.}}{{else}}All{{end}}
+  </a>
+  {{end}}
+</div>
+
+{{if .Bookings}}
+<table>
+  <thead>
+    <tr>
+      <th>Date & Time</th>
+      <th>Guest</th>
+      <th>Event Type</th>
+      <th>Status</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {{range .Bookings}}
+  <tr>
+    <td>{{inTZ .StartAt $.User.Location}}</td>
+    <td>{{.GuestName}}<br><small class="text-muted">{{.GuestEmail}}</small></td>
+    <td>{{.EventType.Title}}</td>
+    <td><span class="badge badge-{{.Status | lower}}">{{.Status}}</span></td>
+    <td>
+      {{if eq .Status "PENDING"}}
+      <div class="action-row">
+        <a href="/booking/{{.Token}}/confirm" class="btn btn-primary btn-sm">Confirm</a>
+        <a href="/booking/{{.Token}}/reject" class="btn btn-danger btn-sm">Reject</a>
+      </div>
+      {{end}}
+    </td>
+  </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="text-muted">No bookings found.</p>
+{{end}}
+{{end}}

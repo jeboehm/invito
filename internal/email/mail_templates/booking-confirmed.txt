@@ -1,0 +1,10 @@
+Confirmed: {{.EventTitle}} on {{.StartAt.Format "January 2, 2006"}}
+
+Your booking has been confirmed.
+
+Event: {{.EventTitle}}
+Date & Time: {{inTZ .StartAt .HostLocation}} ({{.HostLocation.String}})
+Host: {{.HostName}}
+{{if .GuestMessage}}
+Note from host: {{.GuestMessage}}
+{{end}}

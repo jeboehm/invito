@@ -1,0 +1,5 @@
+Your booking request for {{.EventTitle}} has expired
+
+Your booking request for {{.EventTitle}} on {{inTZ .StartAt .HostLocation}} ({{.HostLocation.String}}) has expired because it was not confirmed within 24 hours.
+
+You are welcome to submit a new booking request.

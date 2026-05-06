@@ -1,0 +1,32 @@
+{{define "booking/list.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}Book with {{.User.Name}} — Invito{{end}}
+
+{{define "content"}}
+<div class="content-narrow">
+  <div class="section-intro">
+    <h1>{{.User.Name}}</h1>
+    <p class="text-muted">Choose an event type to book a time.</p>
+  </div>
+
+  {{if .EventTypes}}
+  {{range .EventTypes}}
+  <a href="/calendar/{{$.User.Username}}/{{.Slug}}" class="card-link">
+    <div class="card">
+      <div>
+        <span class="color-dot" style="background:{{.Color}}"></span>
+        <span class="card-title"> {{.Title}}</span>
+        <div class="card-meta">{{.DurationMinutes}} min</div>
+        {{if .Description}}<div class="card-meta">{{.Description}}</div>{{end}}
+      </div>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+  {{end}}
+  {{else}}
+  <p class="text-muted">No booking types are currently available.</p>
+  {{end}}
+</div>
+{{end}}

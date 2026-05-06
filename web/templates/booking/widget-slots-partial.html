@@ -1,0 +1,47 @@
+{{define "booking/widget-slots-partial.html"}}
+{{if .Slots}}
+<form method="post" action="/widget/{{.User.Username}}/{{.EventType.Slug}}/book">
+  <input type="hidden" name="slot" id="selected-slot">
+
+  <div class="slot-grid-wrap">
+    <div class="slot-grid">
+      {{range .Slots}}
+      <button type="button" class="slot-btn"
+        onclick="selectSlot(this, '{{.Start.UTC.Format "2006-01-02T15:04:05Z"}}')">
+        {{.Start.Format "15:04"}}
+      </button>
+      {{end}}
+    </div>
+  </div>
+
+  <div id="booking-form" class="booking-form-section hidden">
+    <h2 class="section-heading">Your details</h2>
+    <div class="form-group">
+      <label for="guest_name">Your name</label>
+      <input type="text" id="guest_name" name="guest_name" required>
+    </div>
+    <div class="form-group">
+      <label for="guest_email">Your email</label>
+      <input type="email" id="guest_email" name="guest_email" required>
+    </div>
+    <div class="form-group">
+      <label for="guest_note">Note (optional)</label>
+      <textarea id="guest_note" name="guest_note" placeholder="Anything you'd like me to know in advance?"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Request booking</button>
+  </div>
+</form>
+
+<script>
+function selectSlot(btn, value) {
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('selected-slot').value = value;
+  document.getElementById('booking-form').classList.remove('hidden');
+  sendHeight();
+}
+</script>
+{{else}}
+<p class="text-muted slot-empty">No available slots for this day.</p>
+{{end}}
+{{end}}

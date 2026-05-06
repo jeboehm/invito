@@ -1,0 +1,74 @@
+{{define "dashboard/calendars.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}Calendars — Invito{{end}}
+
+{{define "content"}}
+{{template "dash-nav" .}}
+<div class="page-header">
+  <h1>CalDAV Calendars</h1>
+</div>
+
+{{if .Error}}
+<div class="alert alert-error">{{.Error}}</div>
+{{end}}
+
+{{if .Calendars}}
+<div class="card-list">
+  {{range .Calendars}}
+  <div class="card" id="calendar-{{.ID}}">
+    <div>
+      <span class="color-dot" style="background:{{.Color}}"></span>
+      <span class="card-title"> {{.DisplayName}}</span>
+      <div class="card-meta">
+        {{.CalDAVURL}}
+        {{if .LastSynced}} · Last synced: {{inTZ .LastSynced $.User.Location}}{{else}} · Never synced{{end}}
+        · {{.EventCount}} event{{if ne .EventCount 1}}s{{end}} synced
+      </div>
+    </div>
+    <div class="card-actions">
+      <form method="post" action="/dashboard/calendars/{{.ID}}/sync">
+        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+        <button type="submit" class="btn">Sync now</button>
+      </form>
+      <button class="btn btn-danger"
+        hx-delete="/dashboard/calendars/{{.ID}}"
+        hx-target="#calendar-{{.ID}}"
+        hx-swap="outerHTML"
+        hx-headers='{"X-CSRF-Token": "{{$.CSRFToken}}"}'
+        hx-confirm="Remove this calendar?">Remove</button>
+    </div>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+<details>
+  <summary>Add CalDAV calendar</summary>
+  <form method="post" action="/dashboard/calendars" class="content-form detail-body">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <div class="form-group">
+      <label for="caldav_url">CalDAV URL</label>
+      <input type="url" id="caldav_url" name="caldav_url" required placeholder="https://cloud.example.com/remote.php/dav/calendars/user/">
+    </div>
+    <div class="form-group">
+      <label for="cal_username">Username</label>
+      <input type="text" id="cal_username" name="username" required>
+    </div>
+    <div class="form-group">
+      <label for="cal_password">Password</label>
+      <input type="password" id="cal_password" name="password" required>
+    </div>
+    <div class="form-group">
+      <label for="display_name">Display Name</label>
+      <input type="text" id="display_name" name="display_name" required placeholder="Work Calendar">
+    </div>
+    <div class="form-group">
+      <label for="cal_color">Color</label>
+      <input type="color" id="cal_color" name="color" value="#6366f1">
+    </div>
+    <button type="submit" class="btn btn-primary">Add Calendar</button>
+  </form>
+</details>
+{{end}}

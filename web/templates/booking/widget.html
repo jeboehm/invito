@@ -1,0 +1,32 @@
+{{define "booking/widget.html"}}
+{{template "widget-layout.html" .}}
+{{end}}
+
+{{define "title"}}{{.EventType.Title}} with {{.User.Name}}{{end}}
+
+{{define "content"}}
+<div class="content-narrow">
+  <div class="picker-header">
+    <h1>{{.EventType.Title}}</h1>
+    <p class="text-muted">{{.EventType.DurationMinutes}} min{{if .EventType.Description}} · {{.EventType.Description}}{{end}} · Times in {{.HostTimezone}}</p>
+  </div>
+
+  <div class="date-nav">
+    {{range .Dates}}
+    <a href="?date={{.Format "2006-01-02"}}"
+       class="date-btn{{if eq (.Format "2006-01-02") $.SelectedDate}} active{{end}}"
+       hx-get="?date={{.Format "2006-01-02"}}"
+       hx-target="#slots"
+       hx-push-url="false"
+       onclick="document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">
+      <div class="date-btn-day">{{.Format "Mon"}}</div>
+      <div class="date-btn-date">{{.Format "Jan 2"}}</div>
+    </a>
+    {{end}}
+  </div>
+
+  <div id="slots">
+    {{template "booking/widget-slots-partial.html" .}}
+  </div>
+</div>
+{{end}}

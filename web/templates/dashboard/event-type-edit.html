@@ -1,0 +1,72 @@
+{{define "dashboard/event-type-edit.html"}}
+{{template "layout.html" .}}
+{{end}}
+
+{{define "title"}}Edit Event Type — Invito{{end}}
+
+{{define "content"}}
+{{template "dash-nav" .}}
+<div class="page-header">
+  <h1>Edit: {{.EventType.Title}}</h1>
+  <a href="/dashboard/event-types" class="btn">← Back</a>
+</div>
+
+{{if .Error}}
+<div class="alert alert-error">{{.Error}}</div>
+{{end}}
+
+<form method="post" action="/dashboard/event-types/{{.EventType.ID}}" class="content-form">
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+  <div class="form-group">
+    <label for="et_title">Title</label>
+    <input type="text" id="et_title" name="title" required value="{{.EventType.Title}}">
+  </div>
+  <div class="form-group">
+    <label for="et_slug">Slug</label>
+    <input type="text" id="et_slug" value="{{.EventType.Slug}}" disabled>
+    <p class="form-hint">Slug cannot be changed after creation.</p>
+  </div>
+  <div class="form-group">
+    <label for="et_description">Description</label>
+    <textarea id="et_description" name="description">{{.EventType.Description}}</textarea>
+    <p class="form-hint">Shown on the booking page.</p>
+  </div>
+  <div class="form-group">
+    <label for="et_confirmed_msg">Message on confirmation</label>
+    <textarea id="et_confirmed_msg" name="confirmed_message">{{.EventType.ConfirmedMessage}}</textarea>
+    <p class="form-hint">Included in the confirmation email sent to the guest.</p>
+  </div>
+  <div class="form-group">
+    <label for="et_rejected_msg">Message on rejection</label>
+    <textarea id="et_rejected_msg" name="rejected_message">{{.EventType.RejectedMessage}}</textarea>
+    <p class="form-hint">Included in the rejection email sent to the guest.</p>
+  </div>
+  <div class="form-group">
+    <label for="et_duration">Duration (minutes)</label>
+    <input type="number" id="et_duration" name="duration_minutes" required value="{{.EventType.DurationMinutes}}" min="5" max="480">
+  </div>
+  <div class="form-group">
+    <label for="et_window">Booking window (days)</label>
+    <input type="number" id="et_window" name="booking_window_days" value="{{.EventType.BookingWindowDays}}" min="1" max="365">
+  </div>
+  <div class="form-group">
+    <label for="et_color">Color</label>
+    <input type="color" id="et_color" name="color" value="{{.EventType.Color}}">
+  </div>
+  <button type="submit" class="btn btn-primary">Save changes</button>
+</form>
+
+{{if .EventType.Active}}
+<div class="content-form" style="margin-top:2rem;">
+  <h2 style="font-size:1.1rem;margin-bottom:0.5rem;">Embed on your website</h2>
+  <p class="text-muted" style="margin-bottom:0.75rem;">Copy this snippet and paste it into your website's HTML where you'd like the booking widget to appear.</p>
+  <div style="position:relative;">
+    <textarea id="embed-code" readonly rows="3" style="width:100%;background:var(--bg-muted,#f3f4f6);border:1px solid var(--border,#e5e7eb);border-radius:6px;padding:0.75rem 1rem;font-size:0.8rem;font-family:monospace;resize:none;box-sizing:border-box;">&lt;script src="{{.BaseURL}}/static/widget.js"
+        data-user="{{.User.Username}}"
+        data-slug="{{.EventType.Slug}}"&gt;&lt;/script&gt;</textarea>
+    <button type="button" class="btn" style="position:absolute;top:0.5rem;right:0.5rem;font-size:0.75rem;padding:0.25rem 0.6rem;"
+      onclick="navigator.clipboard.writeText(document.getElementById('embed-code').value).then(function(){this.textContent='Copied!';setTimeout(function(b){b.textContent='Copy';}.bind(this,this),1500);}.bind(this))">Copy</button>
+  </div>
+</div>
+{{end}}
+{{end}}
