@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/coreos/go-oidc/v3 v3.18.0
-	github.com/emersion/go-ical v0.0.0-20240127095438-fc1c9d8fb2b6
+	github.com/emersion/go-ical v0.0.0-20250609112844-439c63cef608
 	github.com/emersion/go-webdav v0.7.0
 	github.com/playwright-community/playwright-go v0.5700.1
 	golang.org/x/oauth2 v0.36.0
