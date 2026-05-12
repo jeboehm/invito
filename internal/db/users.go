@@ -30,8 +30,7 @@ func UpsertUser(db *sql.DB, sub, email, name, username string) (*User, error) {
 	_, err := db.Exec(`
 		INSERT INTO users (oidc_sub, email, name, username)
 		VALUES (?, ?, ?, ?)
-		ON CONFLICT(oidc_sub) DO UPDATE SET
-			email = excluded.email
+		ON CONFLICT(oidc_sub) DO NOTHING
 	`, sub, email, name, username)
 	if err != nil {
 		return nil, err
@@ -39,10 +38,10 @@ func UpsertUser(db *sql.DB, sub, email, name, username string) (*User, error) {
 	return GetUserBySub(db, sub)
 }
 
-func UpdateUserProfile(db *sql.DB, id int64, name, username, timezone string) error {
+func UpdateUserProfile(db *sql.DB, id int64, name, username, timezone, email string) error {
 	_, err := db.Exec(`
-		UPDATE users SET name = ?, username = ?, timezone = ? WHERE id = ?
-	`, name, username, timezone, id)
+		UPDATE users SET name = ?, username = ?, timezone = ?, email = ? WHERE id = ?
+	`, name, username, timezone, email, id)
 	return err
 }
 
