@@ -8,6 +8,7 @@
     <div class="slot-grid">
       {{range .Slots}}
       <button type="button" class="slot-btn"
+        data-time="{{.Start.UTC.Format "2006-01-02T15:04:05Z"}}"
         onclick="selectSlot(this, '{{.Start.UTC.Format "2006-01-02T15:04:05Z"}}')">
         {{.Start.Format "15:04"}}
       </button>
