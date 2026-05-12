@@ -27,13 +27,13 @@ func TestUpsertAndGetUser(t *testing.T) {
 		t.Fatalf("got username %q", u.Username)
 	}
 
-	// Update email on second upsert
+	// Re-upsert with different email: email should NOT change (user controls it)
 	u2, err := UpsertUser(db, "sub1", "b@example.com", "Alice B", "alice")
 	if err != nil {
 		t.Fatalf("upsert2: %v", err)
 	}
-	if u2.Email != "b@example.com" {
-		t.Fatalf("email not updated: %q", u2.Email)
+	if u2.Email != "a@example.com" {
+		t.Fatalf("email should not be overwritten on re-login: %q", u2.Email)
 	}
 	if u2.ID != u.ID {
 		t.Fatal("id changed on upsert")

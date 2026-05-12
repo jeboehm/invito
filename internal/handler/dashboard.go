@@ -70,6 +70,7 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 	if timezone == "" {
 		timezone = "UTC"
 	}
+	email := strings.TrimSpace(singleLine(r.FormValue("email")))
 
 	showError := func(msg string) {
 		render(w, "dashboard/profile.html", profileData{baseDash(r, user, "profile"), h.cfg.BaseURL, allTimezones, msg})
@@ -87,6 +88,10 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 		showError("Invalid timezone")
 		return
 	}
+	if email == "" || !strings.Contains(email, "@") {
+		showError("A valid email address is required")
+		return
+	}
 
 	if username != user.Username {
 		existing, err := db.GetUserByUsername(h.db, username)
@@ -96,7 +101,7 @@ func (h *DashboardHandler) HandleProfilePost(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	if err := db.UpdateUserProfile(h.db, user.ID, name, username, timezone); err != nil {
+	if err := db.UpdateUserProfile(h.db, user.ID, name, username, timezone, email); err != nil {
 		showError("Could not save profile")
 		return
 	}

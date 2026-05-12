@@ -325,6 +325,26 @@ func TestDashboardProfile(t *testing.T) {
 		t.Errorf("booking page title: got %q, want it to contain %q", bookingPageTitle, "E2E Admin")
 	}
 
+	// Navigate back to profile to change email address.
+	if _, err := page.Goto(serverURL + "/dashboard/profile"); err != nil {
+		t.Fatalf("navigate to profile for email change: %v", err)
+	}
+
+	// Change email address.
+	if err := page.Fill(`input[name="email"]`, "changed@example.com"); err != nil {
+		t.Fatalf("fill email: %v", err)
+	}
+	if err := waitForFormSubmit(page, `form[action="/dashboard/profile"] button[type="submit"]`); err != nil {
+		t.Fatalf("save email: %v", err)
+	}
+	savedEmail, err := page.InputValue(`input[name="email"]`)
+	if err != nil {
+		t.Fatalf("read saved email: %v", err)
+	}
+	if savedEmail != "changed@example.com" {
+		t.Errorf("saved email: got %q, want %q", savedEmail, "changed@example.com")
+	}
+
 	// Validate that an empty name shows a server-side error.
 	if _, err := page.Goto(serverURL + "/dashboard/profile"); err != nil {
 		t.Fatalf("navigate back to profile: %v", err)
