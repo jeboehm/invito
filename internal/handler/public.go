@@ -95,25 +95,47 @@ func (h *PublicHandler) handleSlotPicker(w http.ResponseWriter, r *http.Request,
 	}
 
 	hostLoc := user.Location()
-	now := time.Now().In(hostLoc)
+	now := time.Now()
+	hostNow := now.In(hostLoc)
+	today := time.Date(hostNow.Year(), hostNow.Month(), hostNow.Day(), 0, 0, 0, 0, hostLoc)
+
 	selectedDate := r.URL.Query().Get("date")
 	var date time.Time
 	if selectedDate != "" {
-		date, err = time.ParseInLocation("2006-01-02", selectedDate, hostLoc)
-		if err != nil {
-			date = now
+		if d, parseErr := time.ParseInLocation("2006-01-02", selectedDate, hostLoc); parseErr == nil {
+			date = time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, hostLoc)
+		} else {
+			selectedDate = ""
 		}
-	} else {
-		date = now
+	}
+
+	from := now.Add(-time.Hour)
+	to := now.Add(time.Duration(et.BookingWindowDays) * 24 * time.Hour)
+	rules, _ := db.ListAvailabilityRules(h.db, user.ID)
+	events, _ := db.ListCalendarEventsForUser(h.db, user.ID, from, to)
+	bookings, _ := db.ListPendingBookingsInRange(h.db, user.ID, from, to)
+	duration := time.Duration(et.DurationMinutes) * time.Minute
+
+	var dates []time.Time
+	if !isHTMX(r) {
+		for i := 0; i < et.BookingWindowDays; i++ {
+			day := today.Add(time.Duration(i) * 24 * time.Hour)
+			if len(calendar.CalculateSlots(rules, events, bookings, day, duration, hostLoc, et.BookingWindowDays, now)) > 0 {
+				dates = append(dates, day)
+			}
+		}
+	}
+
+	if selectedDate == "" {
+		if len(dates) > 0 {
+			date = dates[0]
+		} else {
+			date = today
+		}
 		selectedDate = date.Format("2006-01-02")
 	}
-	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, hostLoc)
 
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, hostLoc)
-	dates := make([]time.Time, 7)
-	for i := range dates {
-		dates[i] = today.Add(time.Duration(i) * 24 * time.Hour)
-	}
+	slots := calendar.CalculateSlots(rules, events, bookings, date, duration, hostLoc, et.BookingWindowDays, now)
 
 	bd := base(r, user)
 	bd.HideNav = true
@@ -122,7 +144,7 @@ func (h *PublicHandler) handleSlotPicker(w http.ResponseWriter, r *http.Request,
 		EventType:    et,
 		Dates:        dates,
 		SelectedDate: selectedDate,
-		Slots:        h.calculateSlots(user, et, date),
+		Slots:        slots,
 		HostTimezone: hostLoc.String(),
 	}
 
