@@ -204,7 +204,13 @@ func syncPath(ctx context.Context, client *caldav.Client, database *sql.DB, cale
 			if comp.Name != ical.CompEvent {
 				continue
 			}
-			if err := upsertVEVENT(database, calendarID, comp, time.Local); err != nil {
+			var err error
+			if comp.Props.Get(ical.PropRecurrenceRule) != nil && comp.Props.Get(ical.PropRecurrenceID) == nil {
+				err = expandAndUpsertRRULE(database, calendarID, comp, time.Local, from, to)
+			} else {
+				err = upsertVEVENT(database, calendarID, comp, time.Local)
+			}
+			if err != nil {
 				return err
 			}
 			inserted++
@@ -222,15 +228,15 @@ func upsertVEVENT(database *sql.DB, calendarID int64, comp *ical.Component, loc 
 		return nil
 	}
 
-	startAt, err := parseDateTimeWithFallback(comp.Props, ical.PropDateTimeStart, loc)
-	if err != nil || startAt.IsZero() {
-		log.Printf("sync: skipping event UID=%q: DTSTART parse error: %v", uid, err)
-		return nil
+	// Recurring instances share a UID; the RECURRENCE-ID distinguishes each one.
+	if recurrIDProp := comp.Props.Get(ical.PropRecurrenceID); recurrIDProp != nil && recurrIDProp.Value != "" {
+		uid = uid + "/" + recurrIDProp.Value
 	}
 
-	endAt, err := parseDateTimeWithFallback(comp.Props, ical.PropDateTimeEnd, loc)
-	if err != nil || endAt.IsZero() {
-		endAt = startAt.Add(time.Hour)
+	startAt, endAt, err := parseEventTimes(comp.Props, loc)
+	if err != nil {
+		log.Printf("sync: skipping event UID=%q: %v", uid, err)
+		return nil
 	}
 
 	summary, _ := comp.Props.Text(ical.PropSummary)
@@ -242,6 +248,96 @@ func upsertVEVENT(database *sql.DB, calendarID int64, comp *ical.Component, loc 
 		EndAt:      endAt,
 		Summary:    summary,
 	})
+}
+
+func expandAndUpsertRRULE(database *sql.DB, calendarID int64, comp *ical.Component, loc *time.Location, from, to time.Time) error {
+	uid, err := comp.Props.Text(ical.PropUID)
+	if err != nil || uid == "" {
+		log.Printf("sync: skipping RRULE event without UID (err: %v)", err)
+		return nil
+	}
+
+	startAt, endAt, err := parseEventTimes(comp.Props, loc)
+	if err != nil {
+		log.Printf("sync: uid=%q: skipping RRULE expansion: %v", uid, err)
+		return nil
+	}
+	duration := endAt.Sub(startAt)
+
+	summary, _ := comp.Props.Text(ical.PropSummary)
+
+	splitMultiValueEXDATEs(comp)
+	rset, err := comp.RecurrenceSet(loc)
+	if err != nil || rset == nil {
+		log.Printf("sync: uid=%q: RRULE parse error (%v), storing as single event", uid, err)
+		return db.UpsertCalendarEvent(database, &db.CalendarEvent{
+			CalendarID: calendarID, UID: uid, StartAt: startAt, EndAt: endAt, Summary: summary,
+		})
+	}
+
+	occurrences := rset.Between(from, to, true)
+	log.Printf("sync: uid=%q: RRULE expanded to %d occurrence(s) in sync window", uid, len(occurrences))
+
+	events := make([]db.CalendarEvent, len(occurrences))
+	for i, occ := range occurrences {
+		events[i] = db.CalendarEvent{
+			CalendarID: calendarID,
+			UID:        uid + "~" + occ.UTC().Format("20060102T150405Z"),
+			StartAt:    occ,
+			EndAt:      occ.Add(duration),
+			Summary:    summary,
+		}
+	}
+	return db.BulkUpsertCalendarEvents(database, events)
+}
+
+// parseEventTimes extracts DTSTART and DTEND from props, defaulting DTEND to
+// DTSTART+1h when absent or unparseable.
+func parseEventTimes(props ical.Props, loc *time.Location) (startAt, endAt time.Time, err error) {
+	startAt, err = parseDateTimeWithFallback(props, ical.PropDateTimeStart, loc)
+	if err != nil || startAt.IsZero() {
+		if err == nil {
+			err = fmt.Errorf("DTSTART is zero")
+		}
+		return time.Time{}, time.Time{}, fmt.Errorf("DTSTART: %w", err)
+	}
+	endAt, err = parseDateTimeWithFallback(props, ical.PropDateTimeEnd, loc)
+	if err != nil || endAt.IsZero() {
+		endAt = startAt.Add(time.Hour)
+	}
+	return startAt, endAt, nil
+}
+
+// splitMultiValueEXDATEs normalizes EXDATE properties that carry multiple
+// comma-separated date-time values (valid per RFC 5545 §3.8.5.1) into
+// individual single-value properties, which is what go-ical's RecurrenceSet
+// expects.
+func splitMultiValueEXDATEs(comp *ical.Component) {
+	exdates := comp.Props[ical.PropExceptionDates]
+	if len(exdates) == 0 {
+		return
+	}
+	needsSplit := false
+	for _, p := range exdates {
+		if strings.ContainsRune(p.Value, ',') {
+			needsSplit = true
+			break
+		}
+	}
+	if !needsSplit {
+		return
+	}
+	var expanded []ical.Prop
+	for _, p := range exdates {
+		parts := strings.Split(p.Value, ",")
+		for _, part := range parts {
+			part = strings.TrimSpace(part)
+			if part != "" {
+				expanded = append(expanded, ical.Prop{Name: p.Name, Value: part, Params: p.Params})
+			}
+		}
+	}
+	comp.Props[ical.PropExceptionDates] = expanded
 }
 
 // parseDateTimeWithFallback calls Prop.DateTime with loc. If it fails because
