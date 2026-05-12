@@ -204,6 +204,9 @@ func syncPath(ctx context.Context, client *caldav.Client, database *sql.DB, cale
 			if comp.Name != ical.CompEvent {
 				continue
 			}
+			if isTransparent(comp.Props) {
+				continue
+			}
 			var err error
 			if comp.Props.Get(ical.PropRecurrenceRule) != nil && comp.Props.Get(ical.PropRecurrenceID) == nil {
 				err = expandAndUpsertRRULE(database, calendarID, comp, time.Local, from, to)
@@ -408,6 +411,11 @@ func icalEscape(s string) string {
 	s = strings.ReplaceAll(s, ";", "\\;")
 	s = strings.ReplaceAll(s, ",", "\\,")
 	return s
+}
+
+func isTransparent(props ical.Props) bool {
+	p := props.Get(ical.PropTransparency)
+	return p != nil && strings.EqualFold(p.Value, "TRANSPARENT")
 }
 
 func decryptPassword(key [32]byte, encPass string) (string, error) {
