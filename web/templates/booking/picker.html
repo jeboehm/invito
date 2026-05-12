@@ -12,9 +12,10 @@
     <p class="text-muted">{{.EventType.DurationMinutes}} min{{if .EventType.Description}} · {{.EventType.Description}}{{end}} · Times in {{.HostTimezone}}</p>
   </div>
 
-  <div class="date-nav">
+  <div class="date-nav" data-timezone="{{.HostTimezone}}">
     {{range .Dates}}
     <a href="?date={{.Format "2006-01-02"}}"
+       data-date="{{.Format "2006-01-02"}}"
        class="date-btn{{if eq (.Format "2006-01-02") $.SelectedDate}} active{{end}}"
        hx-get="?date={{.Format "2006-01-02"}}"
        hx-target="#slots"
