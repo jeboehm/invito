@@ -122,6 +122,28 @@ func UpsertCalendarEvent(db *sql.DB, e *CalendarEvent) error {
 	return err
 }
 
+func BulkUpsertCalendarEvents(database *sql.DB, events []CalendarEvent) error {
+	tx, err := database.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	const query = `
+		INSERT INTO calendar_events (calendar_id, uid, start_at, end_at, summary, synced_at)
+		VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+		ON CONFLICT(calendar_id, uid) DO UPDATE SET
+			start_at  = excluded.start_at,
+			end_at    = excluded.end_at,
+			summary   = excluded.summary,
+			synced_at = excluded.synced_at`
+	for _, e := range events {
+		if _, err := tx.Exec(query, e.CalendarID, e.UID, e.StartAt.UTC(), e.EndAt.UTC(), e.Summary); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 func ListCalendarEventsForUser(db *sql.DB, userID int64, from, to time.Time) ([]CalendarEvent, error) {
 	rows, err := db.Query(`
 		SELECT ce.id, ce.calendar_id, ce.uid, ce.start_at, ce.end_at, ce.summary, ce.synced_at
