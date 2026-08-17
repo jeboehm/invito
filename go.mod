@@ -3,7 +3,7 @@ module github.com/jeboehm/invito
 go 1.26
 
 require (
-	github.com/coreos/go-oidc/v3 v3.18.0
+	github.com/coreos/go-oidc/v3 v3.20.0
 	github.com/emersion/go-ical v0.0.0-20250609112844-439c63cef608
 	github.com/emersion/go-webdav v0.7.0 // replaced below; remove once upstream PR #205 is merged
 	github.com/playwright-community/playwright-go v0.5700.1
