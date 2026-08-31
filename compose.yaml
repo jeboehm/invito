@@ -39,7 +39,7 @@ services:
       retries: 10
   # ── Nextcloud ────────────────────────────────────────────────────────────────
   nextcloud:
-    image: nextcloud:33-apache@sha256:90a730e9a3dd290d9626ca64740c4d2fa901b4f231fe4ab6eb0dcf300dbc7271
+    image: nextcloud:33-apache@sha256:9ed3924f92f651aab622b23557b3f3dbcf04f7678567f50a41dbace2463c0a52
     ports:
       - "8081:80"
     environment:
